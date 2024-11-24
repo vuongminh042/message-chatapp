@@ -7,6 +7,32 @@ import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
 
+const ImageModal = ({ isOpen, imageUrl, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black bg-opacity-75 flex justify-center items-center"
+      onClick={onClose}
+    >
+      <div className="relative max-w-full max-h-full">
+        <img
+          src={imageUrl}
+          alt="Enlarged"
+          className="rounded-md max-w-full max-h-screen transform transition duration-300 ease-in-out scale-100 hover:scale-105 filter contrast-125"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <button
+          className="absolute top-2 right-2 bg-gray-800 text-white p-2 rounded-full"
+          onClick={onClose}
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ChatContainer = () => {
   const {
     messages,
@@ -21,8 +47,10 @@ const ChatContainer = () => {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
-  const [editingMessage, setEditingMessage] = useState(null); // State để theo dõi tin nhắn đang được sửa
-  const [editText, setEditText] = useState(""); // Nội dung tin nhắn khi sửa
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -64,6 +92,16 @@ const ChatContainer = () => {
   const handleCancelEdit = () => {
     setEditingMessage(null);
     setEditText("");
+  };
+
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setIsModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+    setIsModalOpen(false);
   };
 
   if (isMessagesLoading) {
@@ -150,19 +188,28 @@ const ChatContainer = () => {
                     <img
                       src={message.image}
                       alt="Attachment"
-                      className="sm:max-w-[200px] rounded-md mb-2"
+                      className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer"
+                      onClick={() => openImageModal(message.image)}
                     />
                   )}
                   {message.text && <p>{message.text}</p>}
                 </>
               )}
-
             </div>
           </div>
         ))}
       </div>
 
       <MessageInput />
+
+      {/* Modal để hiển thị ảnh */}
+      {isModalOpen && (
+        <ImageModal
+          isOpen={isModalOpen}
+          imageUrl={selectedImage}
+          onClose={closeImageModal}
+        />
+      )}
     </div>
   );
 };
