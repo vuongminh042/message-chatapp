@@ -6,6 +6,10 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import { MdDeleteForever } from "react-icons/md";
+import { MdEdit } from "react-icons/md";
+import { FaSave } from "react-icons/fa";
+import { FcCancel } from "react-icons/fc";
 
 const ImageModal = ({ isOpen, imageUrl, onClose }) => {
   if (!isOpen) return null;
@@ -147,13 +151,13 @@ const ChatContainer = () => {
                     className="text-red-500 text-xs"
                     onClick={() => handleDeleteMessage(message._id)}
                   >
-                    Delete
+                    <MdDeleteForever />
                   </button>
                   <button
                     className="text-blue-500 text-xs"
                     onClick={() => handleEditMessage(message)}
                   >
-                    Edit
+                    <MdEdit />
                   </button>
                 </div>
               )}
@@ -172,13 +176,13 @@ const ChatContainer = () => {
                       className="btn btn-xs btn-success"
                       onClick={() => handleSaveEdit(message._id)}
                     >
-                      Save
+                      <FaSave />
                     </button>
                     <button
-                      className="btn btn-xs btn-error"
+                      className="btn btn-xs btn-light"
                       onClick={handleCancelEdit}
                     >
-                      Cancel
+                      <FcCancel className="text-white" />
                     </button>
                   </div>
                 </div>
