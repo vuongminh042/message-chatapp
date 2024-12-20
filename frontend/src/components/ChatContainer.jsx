@@ -1,11 +1,14 @@
-import { useChatStore } from "../store/useChatStore";
 import { useEffect, useRef, useState } from "react";
-
-import ChatHeader from "./ChatHeader";
-import MessageInput from "./MessageInput";
-import MessageSkeleton from "./skeletons/MessageSkeleton";
+import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
-import { formatMessageTime } from "../lib/utils";
+import ChatHeader from "./ChatHeader";
+import MessageSkeleton from "./skeletons/MessageSkeleton";
+import MessageInput from "./MessageInput";
+
+const formatMessageTime = (timestamp) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
 
 const ImageModal = ({ isOpen, imageUrl, onClose }) => {
   if (!isOpen) return null;
@@ -43,6 +46,7 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
     deleteMessage,
     updateMessage,
+    isTyping,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -198,6 +202,24 @@ const ChatContainer = () => {
             </div>
           </div>
         ))}
+        {isTyping && (
+          <div className="chat chat-start">
+            <div className="chat-image avatar">
+              <div className="size-10 rounded-full border">
+                <img
+                  src={selectedUser.profilePic || "/avatar.png"}
+                  alt="profile pic"
+                />
+              </div>
+            </div>
+            <div className="chat-bubble flex items-center">
+              Đang soạn tin nhắn
+              <span className="typing-indicator ml-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse"></span>
+              <span className="typing-indicator ml-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse delay-200"></span>
+              <span className="typing-indicator ml-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse delay-400"></span>
+            </div>
+          </div>
+        )}
       </div>
 
       <MessageInput />

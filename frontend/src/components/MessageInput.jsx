@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { Image, Send, X, Smile } from "lucide-react";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 const MessageInput = () => {
   const [text, setText] = useState("");
@@ -10,6 +11,15 @@ const MessageInput = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
+  const { socket } = useAuthStore();
+
+  useEffect(() => {
+    if (text) {
+      socket.emit("typing");
+    } else {
+      socket.emit("stopTyping");
+    }
+  }, [text, socket]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -44,6 +54,7 @@ const MessageInput = () => {
       setText("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      socket.emit("stopTyping");
     } catch (error) {
       console.error("Failed to send message:", error);
     }
