@@ -69,6 +69,28 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+export const searchMessages = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const userId = req.user._id;
+
+    if (!q) return res.status(400).json({ error: "Vui lòng nhập từ khóa tìm kiếm" });
+
+    const messages = await Message.find({
+      text: { $regex: q, $options: "i" },
+      $or: [{ senderId: userId }, { receiverId: userId }],
+    })
+      .populate("senderId", "username") // Lấy username của người gửi
+      .populate("receiverId", "username"); // Lấy username của người nhận
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Lỗi khi tìm kiếm tin nhắn:", error);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
+
 export const deleteMessage = async (req, res) => {
   try {
     const { id: messageId } = req.params;
