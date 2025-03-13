@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X, Smile } from "lucide-react";
+import { Image, Send, X, Smile, Video } from "lucide-react";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
 import { useAuthStore } from "../store/useAuthStore";
@@ -8,8 +8,10 @@ import { useAuthStore } from "../store/useAuthStore";
 const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
   const { sendMessage } = useChatStore();
   const { socket } = useAuthStore();
 
@@ -35,25 +37,47 @@ const MessageInput = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file.type.startsWith("video/")) {
+      toast.error("Please select a video file");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVideoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const removeImage = () => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const removeVideo = () => {
+    setVideoPreview(null);
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!text.trim() && !imagePreview) return;
+    if (!text.trim() && !imagePreview && !videoPreview) return;
 
     try {
       await sendMessage({
         text: text.trim(),
         image: imagePreview,
+        video: videoPreview,
       });
 
       // Clear form
       setText("");
       setImagePreview(null);
+      setVideoPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      if (videoInputRef.current) videoInputRef.current.value = "";
       socket.emit("stopTyping");
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -85,6 +109,27 @@ const MessageInput = () => {
           </div>
         </div>
       )}
+
+      {videoPreview && (
+        <div className="mb-3 flex items-center gap-2">
+          <div className="relative">
+            <video
+              src={videoPreview}
+              controls
+              className="w-28 h-20 object-cover rounded-lg border border-zinc-700"
+            />
+            <button
+              onClick={removeVideo}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300
+              flex items-center justify-center"
+              type="button"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
 
       <form onSubmit={handleSendMessage} className="flex items-center gap-2 relative">
         <div className="flex-1 flex gap-2">
@@ -118,11 +163,26 @@ const MessageInput = () => {
             <Image size={20} />
           </button>
 
+          <input
+            type="file"
+            accept="video/*"
+            className="hidden"
+            ref={videoInputRef}
+            onChange={handleVideoChange}
+          />
+          <button
+            type="button"
+            className="btn btn-circle text-zinc-400"
+            onClick={() => videoInputRef.current?.click()}
+          >
+            <Video size={20} />
+          </button>
+
         </div>
         <button
           type="submit"
           className="btn btn-sm btn-circle"
-          disabled={!text.trim() && !imagePreview}
+          disabled={!text.trim() && !imagePreview && !videoPreview}
         >
           <Send size={22} />
         </button>
