@@ -24,18 +24,14 @@ app.use(
   })
 );
 
-// Tăng giới hạn payload
 app.use(express.json({ limit: "40mb" }));
 app.use(express.urlencoded({ limit: "40mb", extended: true }));
 
-// Cookie parser
 app.use(cookieParser());
 
-// Các route API
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-// Xử lý static files nếu chạy production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
