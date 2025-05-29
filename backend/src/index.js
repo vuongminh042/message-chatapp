@@ -13,17 +13,17 @@ dotenv.config();
 const PORT = process.env.PORT || 8000;
 const __dirname = path.resolve();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const allowedOrigins = [
   "https://message-chatapp.onrender.com",
   "http://localhost:5173",
   "http://localhost:3000"
 ];
 
-// Cấu hình CORS
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
         const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -33,13 +33,18 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['set-cookie']
   })
 );
 
-// Security middleware
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
+  if (isProduction) {
+    res.header('Access-Control-Allow-Origin', 'https://message-chatapp.onrender.com');
+  } else {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+  }
   next();
 });
 
@@ -47,12 +52,10 @@ app.use(express.json({ limit: "40mb" }));
 app.use(express.urlencoded({ limit: "40mb", extended: true }));
 app.use(cookieParser());
 
-// API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-// Serve static files in production
-if (process.env.NODE_ENV === "production") {
+if (isProduction) {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
   app.get("*", (req, res) => {
@@ -60,14 +63,12 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Start server
 server.listen(PORT, () => {
-  console.log(`Server is running on PORT: ${PORT}`);
+  console.log(`Server is running on PORT: ${PORT} in ${process.env.NODE_ENV} mode`);
   connectDB();
 });

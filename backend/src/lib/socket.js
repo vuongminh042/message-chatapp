@@ -6,6 +6,8 @@ import User from "../models/user.model.js";
 const app = express();
 const server = http.createServer(app);
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const allowedOrigins = [
   "https://message-chatapp.onrender.com",
   "http://localhost:5173",
@@ -29,7 +31,9 @@ const io = new Server(server, {
     name: "io",
     path: "/",
     httpOnly: true,
-    sameSite: "strict"
+    sameSite: isProduction ? "none" : "strict",
+    secure: isProduction,
+    domain: isProduction ? ".onrender.com" : "localhost"
   }
 });
 
