@@ -72,6 +72,38 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  markMessageAsDelivered: async (messageId) => {
+    try {
+      const res = await axiosInstance.put(`/messages/${messageId}/deliver`);
+      const { messages } = get();
+      set({
+        messages: messages.map((message) =>
+          message._id === messageId
+            ? { ...message, status: res.data.status, deliveredAt: res.data.deliveredAt }
+            : message
+        ),
+      });
+    } catch (error) {
+      console.error("Error marking message as delivered:", error);
+    }
+  },
+
+  markMessageAsSeen: async (messageId) => {
+    try {
+      const res = await axiosInstance.put(`/messages/${messageId}/seen`);
+      const { messages } = get();
+      set({
+        messages: messages.map((message) =>
+          message._id === messageId
+            ? { ...message, status: res.data.status, seenAt: res.data.seenAt }
+            : message
+        ),
+      });
+    } catch (error) {
+      console.error("Error marking message as seen:", error);
+    }
+  },
+
   subscribeToMessages: () => {
     const { selectedUser } = get();
     if (!selectedUser) return;
@@ -84,6 +116,31 @@ export const useChatStore = create((set, get) => ({
 
       set({
         messages: [...get().messages, newMessage],
+      });
+
+      // Mark message as delivered when received
+      get().markMessageAsDelivered(newMessage._id);
+    });
+
+    socket.on("messageDelivered", ({ messageId, deliveredAt }) => {
+      const { messages } = get();
+      set({
+        messages: messages.map((message) =>
+          message._id === messageId
+            ? { ...message, status: "delivered", deliveredAt }
+            : message
+        ),
+      });
+    });
+
+    socket.on("messageSeen", ({ messageId, seenAt }) => {
+      const { messages } = get();
+      set({
+        messages: messages.map((message) =>
+          message._id === messageId
+            ? { ...message, status: "seen", seenAt }
+            : message
+        ),
       });
     });
 
@@ -103,6 +160,8 @@ export const useChatStore = create((set, get) => ({
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("messageDelivered");
+    socket.off("messageSeen");
     socket.off("typing");
     socket.off("stopTyping");
   },
