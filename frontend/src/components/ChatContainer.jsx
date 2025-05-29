@@ -59,11 +59,15 @@ const ChatContainer = () => {
   const [isBlocking, setIsBlocking] = useState(false); 
   const [isBlockedBy, setIsBlockedBy] = useState(false); 
 
+  const BASE_URL = import.meta.env.MODE === "development"
+    ? "http://localhost:8000"
+    : "https://message-chatapp.onrender.com";
+
   // Kiểm tra trạng thái chặn ban đầu
   useEffect(() => {
     const checkBlockStatus = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/auth/check", {
+        const response = await fetch(`${BASE_URL}/api/auth/check`, {
           method: "GET",
           credentials: "include",
         });

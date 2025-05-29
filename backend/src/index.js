@@ -20,7 +20,7 @@ const __dirname = path.resolve();
 app.use(
   cors({
     origin: process.env.NODE_ENV === "production" 
-      ? ["https://message-chatapp.onrender.com", "https://message-chatapp-frontend.onrender.com"]
+      ? "https://message-chatapp.onrender.com"
       : "http://localhost:5173",
     credentials: true,
   })
