@@ -2,7 +2,7 @@ import { LogOut, MessageCircle, Settings, User, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useState } from "react";
-import { axiosInstance } from "../lib/axios";
+import axiosInstance from "../lib/axios";
 import { debounce } from "lodash";
 
 const Navbar = ({ handleHighlightMessage }) => {
