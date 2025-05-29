@@ -116,3 +116,67 @@ export const checkAuth = (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const blockUser = async (req, res) => {
+  try {
+    const { userIdToBlock } = req.body;
+    const currentUserId = req.user._id;
+
+    if (!userIdToBlock) {
+      return res.status(400).json({ message: "User ID to block is required" });
+    }
+
+    const userToBlock = await User.findById(userIdToBlock);
+    if (!userToBlock) {
+      return res.status(404).json({ message: "User to block not found" });
+    }
+
+    if (currentUserId.toString() === userIdToBlock.toString()) {
+      return res.status(400).json({ message: "Cannot block yourself" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      currentUserId,
+      { $addToSet: { blockedUsers: userIdToBlock } },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "User blocked successfully",
+      blockedUsers: updatedUser.blockedUsers,
+    });
+  } catch (error) {
+    console.log("Error in blockUser controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const unblockUser = async (req, res) => {
+  try {
+    const { userIdToUnblock } = req.body;
+    const currentUserId = req.user._id;
+
+    if (!userIdToUnblock) {
+      return res.status(400).json({ message: "User ID to unblock is required" });
+    }
+
+    const userToUnblock = await User.findById(userIdToUnblock);
+    if (!userToUnblock) {
+      return res.status(404).json({ message: "User to unblock not found" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      currentUserId,
+      { $pull: { blockedUsers: userIdToUnblock } },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "User unblocked successfully",
+      blockedUsers: updatedUser.blockedUsers,
+    });
+  } catch (error) {
+    console.log("Error in unblockUser controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
