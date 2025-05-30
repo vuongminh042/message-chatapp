@@ -71,6 +71,7 @@ io.on("connection", (socket) => {
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
+  
 });
 
 export { io, app, server };

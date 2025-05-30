@@ -30,7 +30,7 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get(`/messages/${userId}`);
       set({ messages: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error fetching messages");
     } finally {
       set({ isMessagesLoading: false });
     }
@@ -39,9 +39,9 @@ export const useChatStore = create((set, get) => ({
     const { selectedUser, messages } = get();
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      set({ messages: [...messages, res.data] });
+      set({ messages: [...messages, { ...res.data, status: "sent" }] });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error sending message");
     }
   },
 
@@ -80,7 +80,7 @@ export const useChatStore = create((set, get) => ({
       set({
         messages: messages.map((message) =>
           message._id === messageId
-            ? { ...message, status: res.data.status, deliveredAt: res.data.deliveredAt }
+            ? { ...message, status: "delivered", deliveredAt: res.data.deliveredAt }
             : message
         ),
       });
@@ -96,7 +96,7 @@ export const useChatStore = create((set, get) => ({
       set({
         messages: messages.map((message) =>
           message._id === messageId
-            ? { ...message, status: res.data.status, seenAt: res.data.seenAt }
+            ? { ...message, status: "seen", seenAt: res.data.seenAt }
             : message
         ),
       });

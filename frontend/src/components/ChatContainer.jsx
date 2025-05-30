@@ -5,6 +5,7 @@ import ChatHeader from "./ChatHeader";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import MessageInput from "./MessageInput";
 import { toast } from "react-hot-toast";
+import { BsCheck, BsCheckAll } from "react-icons/bs";
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -48,9 +49,12 @@ const ChatContainer = () => {
     deleteMessage,
     updateMessage,
     isTyping,
+    markMessageAsDelivered,
+    markMessageAsSeen,
   } = useChatStore();
   const { authUser, socket } = useAuthStore();
   const messageEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const [editingMessage, setEditingMessage] = useState(null);
   const [editText, setEditText] = useState("");
@@ -152,6 +156,31 @@ const ChatContainer = () => {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  // Xử lý tự động chuyển trạng thái đã nhận sau 5 giây
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.status === "sent" && lastMessage.receiverId === authUser._id) {
+        const timer = setTimeout(() => {
+          markMessageAsDelivered(lastMessage._id);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [messages, authUser._id, markMessageAsDelivered]);
+
+  // Xử lý chuyển trạng thái đã xem khi click vào input
+  const handleInputFocus = () => {
+    if (messages.length > 0) {
+      const unreadMessages = messages.filter(
+        msg => msg.receiverId === authUser._id && msg.status !== "seen"
+      );
+      unreadMessages.forEach(msg => {
+        markMessageAsSeen(msg._id);
+      });
+    }
+  };
 
   const handleBlockUser = async () => {
     if (!socket) {
@@ -280,10 +309,7 @@ const ChatContainer = () => {
                   />
                 </div>
               </div>
-              <div className="chat-header mb-1 flex items-center justify-between">
-                <time className="text-xs opacity-50 ml-1">
-                  {formatMessageTime(message.createdAt)}
-                </time>
+              <div className="chat-header mb-1 flex items-center justify-end">
                 {message.senderId === authUser._id && (
                   <div className="flex gap-2">
                     <button
@@ -339,6 +365,31 @@ const ChatContainer = () => {
                   </>
                 )}
               </div>
+              <div className="chat-footer text-xs flex gap-2 items-center mt-1.5">
+                <time className="ml-1 opacity-50">
+                  {formatMessageTime(message.createdAt)}
+                </time>
+                {message.senderId === authUser._id && (
+                  <span className="flex items-center gap-1">
+                    {message.status === "sent" && <BsCheck className="text-red-500 font-bold" />}
+                    {message.status === "delivered" && (
+                      <span className="flex items-center gap-1">
+                        <BsCheckAll className="text-red-500 font-bold" />
+                        <span className="text-xs text-red-500">Đã nhận</span>
+                      </span>
+                    )}
+                    {message.status === "seen" && (
+                      <div className="w-4 h-4 rounded-full overflow-hidden border border-gray-200">
+                        <img 
+                          src={selectedUser.profilePic || "/avatar.png"} 
+                          alt="Seen by" 
+                          className="w-full h-full object-cover contrast-125"
+                        />
+                      </div>
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
           ))
         )}
@@ -362,7 +413,11 @@ const ChatContainer = () => {
         )}
       </div>
 
-      {!isBlocking && !isBlockedBy && <MessageInput />}
+      {!isBlocking && !isBlockedBy && (
+        <div onFocus={handleInputFocus}>
+          <MessageInput ref={inputRef} />
+        </div>
+      )}
 
       {isModalOpen && (
         <ImageModal

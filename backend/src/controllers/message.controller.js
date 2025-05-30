@@ -89,7 +89,6 @@ export const searchMessages = async (req, res) => {
   }
 };
 
-
 export const deleteMessage = async (req, res) => {
   try {
     const { id: messageId } = req.params;
@@ -140,6 +139,74 @@ export const updateMessage = async (req, res) => {
     res.status(200).json({ message: "Message updated successfully", data: message });
   } catch (error) {
     console.error("Error in updateMessage: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const markMessageAsDelivered = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // Chỉ người nhận mới có thể đánh dấu tin nhắn là đã nhận
+    if (message.receiverId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    message.status = "delivered";
+    message.deliveredAt = new Date();
+    await message.save();
+
+    // Gửi sự kiện tới người gửi
+    const senderSocketId = getReceiverSocketId(message.senderId.toString());
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageDelivered", {
+        messageId: message._id,
+        deliveredAt: message.deliveredAt
+      });
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Error in markMessageAsDelivered: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const markMessageAsSeen = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // Chỉ người nhận mới có thể đánh dấu tin nhắn là đã xem
+    if (message.receiverId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    message.status = "seen";
+    message.seenAt = new Date();
+    await message.save();
+
+    // Gửi sự kiện tới người gửi
+    const senderSocketId = getReceiverSocketId(message.senderId.toString());
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageSeen", {
+        messageId: message._id,
+        seenAt: message.seenAt
+      });
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Error in markMessageAsSeen: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
