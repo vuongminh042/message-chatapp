@@ -6,6 +6,8 @@ import MessageSkeleton from "./skeletons/MessageSkeleton";
 import MessageInput from "./MessageInput";
 import { toast } from "react-hot-toast";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
+import { MdEdit } from "react-icons/md";
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -316,13 +318,13 @@ const ChatContainer = () => {
                       className="text-red-500 text-xs"
                       onClick={() => handleDeleteMessage(message._id)}
                     >
-                      Xóa
+                      <MdDelete />
                     </button>
                     <button
                       className="text-blue-500 text-xs"
                       onClick={() => handleEditMessage(message)}
                     >
-                      Sửa
+                      <MdEdit />
                     </button>
                   </div>
                 )}

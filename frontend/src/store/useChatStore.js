@@ -11,6 +11,7 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isTyping: false,
+  unreadMessages: {}, 
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -51,6 +52,11 @@ export const useChatStore = create((set, get) => ({
       await axiosInstance.delete(`/messages/${messageId}`);
       // Cập nhật danh sách tin nhắn sau khi xóa
       set({ messages: messages.filter((message) => message._id !== messageId) });
+      
+      // Emit socket event để thông báo tin nhắn đã bị xóa
+      const socket = useAuthStore.getState().socket;
+      socket.emit("messageDeleted", { messageId });
+      
       toast.success("Message deleted successfully!");
     } catch (error) {
       toast.error(error.response.data.message || "Failed to delete message.");
@@ -61,12 +67,18 @@ export const useChatStore = create((set, get) => ({
     const { messages } = get();
     try {
       const res = await axiosInstance.put(`/messages/${messageId}`, { text: newText });
+      const updatedMessage = { ...messages.find(m => m._id === messageId), text: res.data.text };
+      
       // Cập nhật tin nhắn trong danh sách
       set({
         messages: messages.map((message) =>
-          message._id === messageId ? { ...message, text: res.data.text } : message
+          message._id === messageId ? updatedMessage : message
         ),
       });
+
+      const socket = useAuthStore.getState().socket;
+      socket.emit("messageUpdated", updatedMessage);
+      
       toast.success("Message updated successfully!");
     } catch (error) {
       toast.error(error.response.data.message || "Failed to update message.");
@@ -112,15 +124,26 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
+      const { selectedUser, messages } = get();
+      
+      // Nếu tin nhắn đến từ người đang chat
+      if (selectedUser && newMessage.senderId === selectedUser._id) {
+        set({
+          messages: [...messages, newMessage],
+        });
+        // Mark message as delivered when received
+        get().markMessageAsDelivered(newMessage._id);
+      }
 
-      set({
-        messages: [...get().messages, newMessage],
-      });
-
-      // Mark message as delivered when received
-      get().markMessageAsDelivered(newMessage._id);
+      // Tăng số tin nhắn chưa đọc nếu không phải là người đang chat
+      if (!selectedUser || newMessage.senderId !== selectedUser._id) {
+        set(state => ({
+          unreadMessages: {
+            ...state.unreadMessages,
+            [newMessage.senderId]: (state.unreadMessages[newMessage.senderId] || 0) + 1
+          }
+        }));
+      }
     });
 
     socket.on("messageDelivered", ({ messageId, deliveredAt }) => {
@@ -145,6 +168,22 @@ export const useChatStore = create((set, get) => ({
       });
     });
 
+    socket.on("messageUpdated", (updatedMessage) => {
+      const { messages } = get();
+      set({
+        messages: messages.map((message) =>
+          message._id === updatedMessage._id ? updatedMessage : message
+        ),
+      });
+    });
+
+    socket.on("messageDeleted", ({ messageId }) => {
+      const { messages } = get();
+      set({
+        messages: messages.filter((message) => message._id !== messageId),
+      });
+    });
+
     socket.on("typing", (typingUserId) => {
       if (typingUserId === selectedUser._id) {
         set({ isTyping: true });
@@ -163,10 +202,23 @@ export const useChatStore = create((set, get) => ({
     socket.off("newMessage");
     socket.off("messageDelivered");
     socket.off("messageSeen");
+    socket.off("messageUpdated"); // Hủy đăng ký event cập nhật tin nhắn
+    socket.off("messageDeleted"); // Hủy đăng ký event xóa tin nhắn
     socket.off("typing");
     socket.off("stopTyping");
   },
 
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: (user) => {
+    set({ selectedUser: user });
+    if (user) {
+      // Clear unread messages when selecting a user
+      set(state => ({
+        unreadMessages: {
+          ...state.unreadMessages,
+          [user._id]: 0
+        }
+      }));
+    }
+  },
 
 }));

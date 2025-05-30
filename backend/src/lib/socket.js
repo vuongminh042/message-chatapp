@@ -19,7 +19,6 @@ export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
 }
 
-
 const userSocketMap = {}; 
 
 io.on("connection", (socket) => {
@@ -42,6 +41,14 @@ io.on("connection", (socket) => {
     if (userId) {
       socket.broadcast.emit("stopTyping", userId);
     }
+  });
+
+  socket.on("messageUpdated", (updatedMessage) => {
+    socket.broadcast.emit("messageUpdated", updatedMessage);
+  });
+
+  socket.on("messageDeleted", ({ messageId }) => {
+    socket.broadcast.emit("messageDeleted", { messageId });
   });
 
   socket.on("blockUser", async ({ userIdToBlock, currentUserId }) => {

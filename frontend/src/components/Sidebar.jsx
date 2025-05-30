@@ -5,7 +5,7 @@ import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { Search, Users } from "lucide-react";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, unreadMessages } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,7 +90,14 @@ const Sidebar = () => {
 
               {/* User info - only visible on larger screens */}
               <div className="hidden lg:block text-left min-w-0">
-                <div className="font-medium truncate">{user.fullName}</div>
+                <div className={`font-medium truncate ${unreadMessages[user._id] > 0 ? 'text-red-500 font-bold' : ''}`}>
+                  {user.fullName}
+                  {unreadMessages[user._id] > 0 && (
+                    <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                      {unreadMessages[user._id]}
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm text-zinc-400">
                   {onlineUsers.includes(user._id) ? "Online" : "Offline"}
                 </div>
