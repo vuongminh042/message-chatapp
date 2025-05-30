@@ -86,12 +86,19 @@ const Sidebar = () => {
                     rounded-full ring-2 ring-zinc-900"
                   />
                 )}
+                {/* Unread message badge for mobile */}
+                {unreadMessages[user._id] > 0 && (
+                  <span className="lg:hidden absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center ring-2 ring-zinc-900">
+                    {unreadMessages[user._id]}
+                  </span>
+                )}
               </div>
 
               {/* User info - only visible on larger screens */}
               <div className="hidden lg:block text-left min-w-0">
                 <div className={`font-medium truncate ${unreadMessages[user._id] > 0 ? 'text-red-500 font-bold' : ''}`}>
                   {user.fullName}
+                  {/* Unread message badge for desktop */}
                   {unreadMessages[user._id] > 0 && (
                     <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
                       {unreadMessages[user._id]}

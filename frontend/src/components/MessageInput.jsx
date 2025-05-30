@@ -194,7 +194,7 @@ const MessageInput = forwardRef((props, ref) => {
         {showEmojiPicker && (
           <div 
             ref={emojiPickerRef}
-            className="absolute bottom-full right-0 mb-2 z-50"
+            className="absolute bottom-full right-0 mb-2 z-50 w-full lg:w-auto"
             style={styles.fadeIn}
           >
             <div className="relative bg-base-200 rounded-lg p-2">
@@ -209,8 +209,9 @@ const MessageInput = forwardRef((props, ref) => {
                 onEmojiClick={handleEmojiClick}
                 searchPlaceholder="Tìm emoji..."
                 previewConfig={{ showPreview: false }}
-                height={350}
-                width={280}
+                height={300}
+                width="100%"
+                className="!w-full"
               />
             </div>
           </div>
