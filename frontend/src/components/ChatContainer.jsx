@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
+import { Reply } from "lucide-react";
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -63,13 +64,13 @@ const ChatContainer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isBlocking, setIsBlocking] = useState(false); 
-  const [isBlockedBy, setIsBlockedBy] = useState(false); 
+  const [isBlockedBy, setIsBlockedBy] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
 
   const BASE_URL = import.meta.env.MODE === "development"
     ? "http://localhost:8000"
     : "https://message-chatapp.onrender.com";
 
-  // Kiểm tra trạng thái chặn ban đầu
   useEffect(() => {
     const checkBlockStatus = async () => {
       try {
@@ -159,7 +160,6 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  // Xử lý tự động chuyển trạng thái đã nhận sau 5 giây
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
@@ -172,7 +172,6 @@ const ChatContainer = () => {
     }
   }, [messages, authUser._id, markMessageAsDelivered]);
 
-  // Xử lý chuyển trạng thái đã xem khi click vào input
   const handleInputFocus = () => {
     if (messages.length > 0) {
       const unreadMessages = messages.filter(
@@ -250,6 +249,15 @@ const ChatContainer = () => {
     setIsModalOpen(false);
   };
 
+  const handleReplyMessage = (message) => {
+    setReplyTo(message);
+    inputRef.current?.focus();
+  };
+
+  const handleCancelReply = () => {
+    setReplyTo(null);
+  };
+
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
@@ -266,7 +274,7 @@ const ChatContainer = () => {
         <ChatHeader />
         {isBlocking ? (
           <button
-            className="btn btn-sm btn-success"
+            className="btn btn-sm btn-success text-white"
             onClick={handleUnblockUser}
             disabled={!socket}
           >
@@ -274,7 +282,7 @@ const ChatContainer = () => {
           </button>
         ) : (
           <button
-            className="btn btn-sm btn-error"
+            className="btn btn-sm btn-error text-white"
             onClick={handleBlockUser}
             disabled={!socket || isBlockedBy}
           >
@@ -285,18 +293,18 @@ const ChatContainer = () => {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isBlocking ? (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-red-500">
             Bạn đã chặn. Vui lòng bỏ chặn để tiếp tục cuộc trò chuyện.
           </div>
         ) : isBlockedBy ? (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-red-500">
             Bạn đã bị chặn, không thể tiếp tục cuộc trò chuyện.
           </div>
         ) : (
           messages.map((message) => (
             <div
               key={message._id}
-              className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
+              className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"} group`}
               ref={messageEndRef}
             >
               <div className="chat-image avatar">
@@ -329,43 +337,78 @@ const ChatContainer = () => {
                   </div>
                 )}
               </div>
-              <div className="chat-bubble flex flex-col">
-                {editingMessage === message._id ? (
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="text"
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      className="input input-bordered input-sm"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        className="btn btn-xs btn-success"
-                        onClick={() => handleSaveEdit(message._id)}
-                      >
-                        Lưu
-                      </button>
-                      <button
-                        className="btn btn-xs btn-error"
-                        onClick={handleCancelEdit}
-                      >
-                        Hủy
-                      </button>
+              <div className="relative">
+                {message.replyTo && (
+                  <div 
+                    className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg bg-base-200 mb-1 cursor-pointer hover:bg-base-300 transition-colors max-w-[200px] ${
+                      message.senderId === authUser._id ? "ml-auto" : "mr-auto"
+                    }`}
+                    onClick={() => {
+                      const replyMessage = messages.find(m => m._id === message.replyTo._id);
+                      if (replyMessage) {
+                        const element = document.getElementById(replyMessage._id);
+                        element?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        element?.classList.add("highlight");
+                        setTimeout(() => element?.classList.remove("highlight"), 2000);
+                      }
+                    }}
+                  >
+                    <Reply size={12} />
+                    <div className="flex-1 truncate">
+                      <span className="opacity-70">
+                        {message.replyTo.senderId === authUser._id ? "You" : selectedUser.username}
+                      </span>
+                      <p className="truncate">{message.replyTo.text || "Image message"}</p>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {message.image && (
-                      <img
-                        src={message.image}
-                        alt="Attachment"
-                        className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer"
-                        onClick={() => openImageModal(message.image)}
-                      />
-                    )}
-                    {message.text && <p>{message.text}</p>}
-                  </>
                 )}
+                <div id={message._id} className="chat-bubble flex flex-col min-w-0">
+                  {editingMessage === message._id ? (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="text"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="input input-bordered input-sm"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="btn btn-xs btn-success"
+                          onClick={() => handleSaveEdit(message._id)}
+                        >
+                          Lưu
+                        </button>
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={handleCancelEdit}
+                        >
+                          Hủy
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {message.image && (
+                        <img
+                          src={message.image}
+                          alt="Attachment"
+                          className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer"
+                          onClick={() => openImageModal(message.image)}
+                        />
+                      )}
+                      {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
+                    </>
+                  )}
+                </div>
+                <button
+                  className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity btn btn-ghost btn-xs btn-circle"
+                  onClick={() => handleReplyMessage(message)}
+                  style={{
+                    [message.senderId === authUser._id ? "left" : "right"]: "-24px"
+                  }}
+                >
+                  <Reply size={14} />
+                </button>
               </div>
               <div className="chat-footer text-xs flex gap-2 items-center mt-1.5">
                 <time className="ml-1 opacity-50">
@@ -417,7 +460,11 @@ const ChatContainer = () => {
 
       {!isBlocking && !isBlockedBy && (
         <div onFocus={handleInputFocus}>
-          <MessageInput ref={inputRef} />
+          <MessageInput 
+            ref={inputRef}
+            replyTo={replyTo}
+            onCancelReply={handleCancelReply}
+          />
         </div>
       )}
 
@@ -428,6 +475,26 @@ const ChatContainer = () => {
           onClose={closeImageModal}
         />
       )}
+
+      <style>
+        {`
+          .chat-bubble {
+            display: inline-block !important;
+            max-width: max-content !important;
+          }
+          .highlight {
+            animation: highlight 2s ease-in-out;
+          }
+          @keyframes highlight {
+            0%, 100% {
+              background-color: inherit;
+            }
+            50% {
+              background-color: hsl(var(--p) / 0.2);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

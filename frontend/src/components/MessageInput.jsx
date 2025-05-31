@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, forwardRef } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X, Plus, Smile } from "lucide-react";
+import { Image, Send, X, Plus, Smile, Reply } from "lucide-react";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
 import { useAuthStore } from "../store/useAuthStore";
@@ -12,7 +12,7 @@ const styles = {
   }
 };
 
-const MessageInput = forwardRef((props, ref) => {
+const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -58,12 +58,14 @@ const MessageInput = forwardRef((props, ref) => {
       await sendMessage({
         text: text.trim(),
         image: imagePreview,
+        replyTo: replyTo?._id,
       });
 
       setText("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       socket.emit("stopTyping");
+      if (onCancelReply) onCancelReply();
     } catch (error) {
       console.error("Failed to send message:", error);
     }
@@ -104,6 +106,22 @@ const MessageInput = forwardRef((props, ref) => {
           }
         `}
       </style>
+
+      {replyTo && (
+        <div className="mb-3 flex items-center gap-2 bg-base-200 p-2 rounded-lg">
+          <Reply size={16} />
+          <div className="flex-1">
+            <p className="text-sm opacity-70">Replying to message</p>
+            <p className="text-sm truncate">{replyTo.text || "Image message"}</p>
+          </div>
+          <button
+            onClick={onCancelReply}
+            className="btn btn-ghost btn-circle btn-sm"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
@@ -200,18 +218,14 @@ const MessageInput = forwardRef((props, ref) => {
             <div className="relative bg-base-200 rounded-lg p-2">
               <button
                 onClick={() => setShowEmojiPicker(false)}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-base-300 flex items-center justify-center z-50 hover:bg-base-100"
-                type="button"
+                className="absolute -top-1 -right-1 btn btn-circle btn-xs"
               >
                 <X size={14} />
               </button>
-              <EmojiPicker 
+              <EmojiPicker
                 onEmojiClick={handleEmojiClick}
-                searchPlaceholder="Tìm emoji..."
-                previewConfig={{ showPreview: false }}
-                height={300}
                 width="100%"
-                className="!w-full"
+                height={400}
               />
             </div>
           </div>
