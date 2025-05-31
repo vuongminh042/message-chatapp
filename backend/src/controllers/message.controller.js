@@ -51,9 +51,19 @@ export const sendMessage = async (req, res) => {
 
     if (video) {
       try {
+        const base64Size = video.length * 0.75;
+        const videoSize = base64Size - (video.split(',')[0].length + 1);
+        const maxSize = 1024 * 1024 * 1024; 
+
+        if (videoSize > maxSize) {
+          return res.status(400).json({
+            error: "Kích thước video không được vượt quá 1GB"
+          });
+        }
+
         const uploadResponse = await cloudinary.uploader.upload(video, {
           resource_type: "video",
-          chunk_size: 6000000,
+          chunk_size: 20000000,
           eager: [
             { 
               format: "mp4",
@@ -63,13 +73,15 @@ export const sendMessage = async (req, res) => {
               ]
             }
           ],
-          eager_async: true
+          eager_async: true,
+          allowed_formats: ["mp4", "mov", "avi", "mkv"],
+          max_file_size: 1024000000 
         });
         videoUrl = uploadResponse.secure_url;
       } catch (uploadError) {
         console.error("Error uploading video:", uploadError);
         return res.status(400).json({ 
-          error: "Không thể tải lên video. Vui lòng kiểm tra kích thước và định dạng video." 
+          error: "Không thể tải lên video. Video phải có định dạng MP4, MOV, AVI hoặc MKV và dung lượng dưới 1GB." 
         });
       }
     }
