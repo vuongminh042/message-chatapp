@@ -293,11 +293,11 @@ const ChatContainer = () => {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isBlocking ? (
-          <div className="text-center text-red-500">
+          <div className="text-center text-gray-500">
             Bạn đã chặn. Vui lòng bỏ chặn để tiếp tục cuộc trò chuyện.
           </div>
         ) : isBlockedBy ? (
-          <div className="text-center text-red-500">
+          <div className="text-center text-gray-500">
             Bạn đã bị chặn, không thể tiếp tục cuộc trò chuyện.
           </div>
         ) : (
