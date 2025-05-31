@@ -37,14 +37,41 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo } = req.body;
+    const { text, image, video, replyTo } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
     let imageUrl;
+    let videoUrl;
+
     if (image) {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
+    }
+
+    if (video) {
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(video, {
+          resource_type: "video",
+          chunk_size: 6000000,
+          eager: [
+            { 
+              format: "mp4",
+              transformation: [
+                { width: 380, crop: "scale" },
+                { quality: "auto:low" }
+              ]
+            }
+          ],
+          eager_async: true
+        });
+        videoUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error("Error uploading video:", uploadError);
+        return res.status(400).json({ 
+          error: "Không thể tải lên video. Vui lòng kiểm tra kích thước và định dạng video." 
+        });
+      }
     }
     
     const newMessage = new Message({
@@ -52,6 +79,7 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+      video: videoUrl,
       replyTo: replyTo || null,
     });
 
@@ -68,8 +96,8 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(newMessage);
   } catch (error) {
-    console.log("Error in sendMessage controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error in sendMessage controller:", error);
+    res.status(500).json({ error: "Không thể gửi tin nhắn. Vui lòng thử lại." });
   }
 };
 
@@ -84,8 +112,8 @@ export const searchMessages = async (req, res) => {
       text: { $regex: q, $options: "i" },
       $or: [{ senderId: userId }, { receiverId: userId }],
     })
-      .populate("senderId", "username") // Lấy username của người gửi
-      .populate("receiverId", "username"); // Lấy username của người nhận
+      .populate("senderId", "username") 
+      .populate("receiverId", "username"); 
 
     res.status(200).json(messages);
   } catch (error) {
@@ -157,7 +185,6 @@ export const markMessageAsDelivered = async (req, res) => {
       return res.status(404).json({ error: "Message not found" });
     }
 
-    // Chỉ người nhận mới có thể đánh dấu tin nhắn là đã nhận
     if (message.receiverId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: "Not authorized" });
     }
@@ -166,7 +193,6 @@ export const markMessageAsDelivered = async (req, res) => {
     message.deliveredAt = new Date();
     await message.save();
 
-    // Gửi sự kiện tới người gửi
     const senderSocketId = getReceiverSocketId(message.senderId.toString());
     if (senderSocketId) {
       io.to(senderSocketId).emit("messageDelivered", {
@@ -191,7 +217,6 @@ export const markMessageAsSeen = async (req, res) => {
       return res.status(404).json({ error: "Message not found" });
     }
 
-    // Chỉ người nhận mới có thể đánh dấu tin nhắn là đã xem
     if (message.receiverId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: "Not authorized" });
     }
@@ -200,7 +225,6 @@ export const markMessageAsSeen = async (req, res) => {
     message.seenAt = new Date();
     await message.save();
 
-    // Gửi sự kiện tới người gửi
     const senderSocketId = getReceiverSocketId(message.senderId.toString());
     if (senderSocketId) {
       io.to(senderSocketId).emit("messageSeen", {

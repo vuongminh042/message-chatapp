@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, forwardRef } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X, Plus, Smile, Reply } from "lucide-react";
+import { Image, Send, X, Plus, Smile, Reply, Video } from "lucide-react";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
 import { useAuthStore } from "../store/useAuthStore";
@@ -15,9 +15,11 @@ const styles = {
 const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const { sendMessage } = useChatStore();
   const { socket } = useAuthStore();
@@ -40,30 +42,57 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
+      setVideoPreview(null); // Reset video preview when image is selected
     };
     reader.readAsDataURL(file);
     setShowPlusMenu(false);
   };
 
-  const removeImage = () => {
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file.type.startsWith("video/")) {
+      toast.error("Vui lòng chọn file video");
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      toast.error("Video không được vượt quá 50MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVideoPreview(reader.result);
+      setImagePreview(null); // Reset image preview when video is selected
+    };
+    reader.readAsDataURL(file);
+    setShowPlusMenu(false);
+  };
+
+  const removeMedia = () => {
     setImagePreview(null);
+    setVideoPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (videoInputRef.current) videoInputRef.current.value = "";
   };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!text.trim() && !imagePreview) return;
+    if (!text.trim() && !imagePreview && !videoPreview) return;
 
     try {
       await sendMessage({
         text: text.trim(),
         image: imagePreview,
+        video: videoPreview,
         replyTo: replyTo?._id,
       });
 
       setText("");
       setImagePreview(null);
+      setVideoPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      if (videoInputRef.current) videoInputRef.current.value = "";
       socket.emit("stopTyping");
       if (onCancelReply) onCancelReply();
     } catch (error) {
@@ -112,7 +141,7 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
           <Reply size={16} />
           <div className="flex-1">
             <p className="text-sm opacity-70">Replying to message</p>
-            <p className="text-sm truncate">{replyTo.text || "Image message"}</p>
+            <p className="text-sm truncate">{replyTo.text || "Media message"}</p>
           </div>
           <button
             onClick={onCancelReply}
@@ -123,16 +152,25 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
         </div>
       )}
 
-      {imagePreview && (
+      {(imagePreview || videoPreview) && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
-            />
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
+              />
+            )}
+            {videoPreview && (
+              <video
+                src={videoPreview}
+                className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
+                controls
+              />
+            )}
             <button
-              onClick={removeImage}
+              onClick={removeMedia}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300
               flex items-center justify-center"
               type="button"
@@ -179,6 +217,14 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
                     <Image size={18} />
                     <span>Gửi hình ảnh</span>
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-ghost justify-start gap-2"
+                    onClick={() => videoInputRef.current?.click()}
+                  >
+                    <Video size={18} />
+                    <span>Gửi video</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -199,12 +245,19 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
             ref={fileInputRef}
             onChange={handleImageChange}
           />
+          <input
+            type="file"
+            accept="video/*"
+            className="hidden"
+            ref={videoInputRef}
+            onChange={handleVideoChange}
+          />
         </div>
 
         <button
           type="submit"
           className="btn btn-circle btn-sm h-10 w-10 min-h-10"
-          disabled={!text.trim() && !imagePreview}
+          disabled={!text.trim() && !imagePreview && !videoPreview}
         >
           <Send size={20} />
         </button>

@@ -258,6 +258,29 @@ const ChatContainer = () => {
     setReplyTo(null);
   };
 
+  const convertUrlsToLinks = (text) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a 
+            key={i} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-200 underline"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
@@ -270,11 +293,11 @@ const ChatContainer = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-auto">
-      <div className="flex justify-between items-center p-4 border-b">
+      <div className="flex justify-between items-center p-2 sm:p-4 border-b">
         <ChatHeader />
         {isBlocking ? (
           <button
-            className="btn btn-sm btn-success text-white"
+            className="btn btn-xs sm:btn-sm btn-success text-white"
             onClick={handleUnblockUser}
             disabled={!socket}
           >
@@ -282,7 +305,7 @@ const ChatContainer = () => {
           </button>
         ) : (
           <button
-            className="btn btn-sm btn-error text-white"
+            className="btn btn-xs sm:btn-sm btn-error text-white"
             onClick={handleBlockUser}
             disabled={!socket || isBlockedBy}
           >
@@ -308,7 +331,7 @@ const ChatContainer = () => {
               ref={messageEndRef}
             >
               <div className="chat-image avatar">
-                <div className="size-10 rounded-full border">
+                <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full border">
                   <img
                     src={
                       message.senderId === authUser._id
@@ -396,7 +419,22 @@ const ChatContainer = () => {
                           onClick={() => openImageModal(message.image)}
                         />
                       )}
-                      {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
+                      {message.video && (
+                        <div className="video-wrapper">
+                          <video
+                            src={message.video}
+                            controls
+                            preload="none"
+                            className="w-[100px] sm:w-[320px] rounded-md mb-2"
+                            poster="/video-thumbnail.png"
+                          />
+                        </div>
+                      )}
+                      {message.text && (
+                        <p className="whitespace-pre-wrap break-words">
+                          {convertUrlsToLinks(message.text)}
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
@@ -441,14 +479,14 @@ const ChatContainer = () => {
         {!isBlocking && !isBlockedBy && isTyping && (
           <div className="chat chat-start">
             <div className="chat-image avatar">
-              <div className="size-10 rounded-full border">
+              <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full border">
                 <img
                   src={selectedUser.profilePic || "/avatar.png"}
                   alt="profile pic"
                 />
               </div>
             </div>
-            <div className="chat-bubble flex items-center">
+            <div className="chat-bubble flex items-center text-xs sm:text-sm">
               Đang soạn tin nhắn
               <span className="typing-indicator ml-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse"></span>
               <span className="typing-indicator ml-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse delay-200"></span>
@@ -481,6 +519,14 @@ const ChatContainer = () => {
           .chat-bubble {
             display: inline-block !important;
             max-width: max-content !important;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.875rem;
+          }
+          @media (min-width: 640px) {
+            .chat-bubble {
+              padding: 0.75rem 1rem !important;
+              font-size: 1rem;
+            }
           }
           .highlight {
             animation: highlight 2s ease-in-out;
@@ -491,6 +537,19 @@ const ChatContainer = () => {
             }
             50% {
               background-color: hsl(var(--p) / 0.2);
+            }
+          }
+          .video-wrapper {
+            position: relative;
+            width: fit-content;
+          }
+          video {
+            max-height: 80px;
+            background: #000;
+          }
+          @media (min-width: 640px) {
+            video {
+              max-height: 300px;
             }
           }
         `}
