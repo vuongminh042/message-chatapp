@@ -233,7 +233,7 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
           <input
             type="text"
             className="w-full input input-bordered rounded-lg input-sm h-10"
-            placeholder="Type a message..."
+            placeholder="Nhập tin nhắn..."
             value={text}
             onChange={(e) => setText(e.target.value)}
             ref={ref}

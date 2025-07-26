@@ -7,16 +7,16 @@ export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
     if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Vui lòng nhập tất cả các trường" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+      return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự." });
     }
 
     const user = await User.findOne({ email });
 
-    if (user) return res.status(400).json({ message: "Email already exists" });
+    if (user) return res.status(400).json({ message: "Tài khoản email đã tồn tại" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -39,11 +39,11 @@ export const signup = async (req, res) => {
         profilePic: newUser.profilePic,
       });
     } else {
-      res.status(400).json({ message: "Invalid user data" });
+      res.status(400).json({ message: "Thông tin người dùng không hợp lệ, vui lòng kiểm tra lại." });
     }
   } catch (error) {
     console.log("Error in signup controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -53,12 +53,12 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Email hoặc mật khẩu không đúng" });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Email hoặc mật khẩu không đúng" });
     }
 
     generateToken(user._id, res);
@@ -71,17 +71,17 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };
 
 export const logout = (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({ message: "Logged out successfully" });
+    res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (error) {
     console.log("Error in logout controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -91,7 +91,7 @@ export const updateProfile = async (req, res) => {
     const userId = req.user._id;
 
     if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+      return res.status(400).json({ message: "Vui lòng chọn ảnh đại diện" });
     }
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
@@ -104,7 +104,7 @@ export const updateProfile = async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -113,7 +113,7 @@ export const checkAuth = (req, res) => {
     res.status(200).json(req.user);
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -123,16 +123,16 @@ export const blockUser = async (req, res) => {
     const currentUserId = req.user._id;
 
     if (!userIdToBlock) {
-      return res.status(400).json({ message: "User ID to block is required" });
+      return res.status(400).json({ message: "Vui lòng chọn tài khoản bạn muốn chặn." });
     }
 
     const userToBlock = await User.findById(userIdToBlock);
     if (!userToBlock) {
-      return res.status(404).json({ message: "User to block not found" });
+      return res.status(404).json({ message: "Không tìm thấy người dùng bạn muốn chặn." });
     }
 
     if (currentUserId.toString() === userIdToBlock.toString()) {
-      return res.status(400).json({ message: "Cannot block yourself" });
+      return res.status(400).json({ message: "Bạn không thể tự chặn chính mình." });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -142,12 +142,12 @@ export const blockUser = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "User blocked successfully",
+      message: "Chặn người dùng thành công!",
       blockedUsers: updatedUser.blockedUsers,
     });
   } catch (error) {
     console.log("Error in blockUser controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -157,12 +157,12 @@ export const unblockUser = async (req, res) => {
     const currentUserId = req.user._id;
 
     if (!userIdToUnblock) {
-      return res.status(400).json({ message: "User ID to unblock is required" });
+      return res.status(400).json({ message: "Vui lòng chọn người bạn muốn bỏ chặn." });
     }
 
     const userToUnblock = await User.findById(userIdToUnblock);
     if (!userToUnblock) {
-      return res.status(404).json({ message: "User to unblock not found" });
+      return res.status(404).json({ message: "Không tìm thấy tài khoản cần bỏ chặn." });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -172,11 +172,11 @@ export const unblockUser = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "User unblocked successfully",
+      message: "Bỏ chặn người dùng thành công.",
       blockedUsers: updatedUser.blockedUsers,
     });
   } catch (error) {
     console.log("Error in unblockUser controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Đã xảy ra lỗi!!" });
   }
 };

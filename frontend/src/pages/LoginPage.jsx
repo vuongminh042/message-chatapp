@@ -19,10 +19,8 @@ const LoginPage = () => {
 
   return (
     <div className="h-screen grid lg:grid-cols-2">
-      {/* Left Side - Form */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
               <div
@@ -31,8 +29,8 @@ const LoginPage = () => {
               >
                 <MessageSquare className="w-6 h-6 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold mt-2">Welcome Back</h1>
-              <p className="text-base-content/60">Sign in to your account</p>
+              <h1 className="text-2xl font-bold mt-2">Chào mừng bạn trở lại 😊</h1>
+              <p className="text-base-content/60">Đăng nhập vào tài khoản của bạn</p>
             </div>
           </div>
 
@@ -49,7 +47,7 @@ const LoginPage = () => {
                 <input
                   type="email"
                   className={`input input-bordered w-full pl-10`}
-                  placeholder="you@example.com"
+                  placeholder="nguyenvana@gmail.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
@@ -58,7 +56,7 @@ const LoginPage = () => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Password</span>
+                <span className="label-text font-medium">Mật khẩu</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -67,7 +65,7 @@ const LoginPage = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   className={`input input-bordered w-full pl-10`}
-                  placeholder="••••••••"
+                  placeholder="********"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
@@ -89,29 +87,28 @@ const LoginPage = () => {
               {isLoggingIn ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading...
+                  Đang xử lý...
                 </>
               ) : (
-                "Sign in"
+                "Đăng nhập"
               )}
             </button>
           </form>
 
           <div className="text-center">
             <p className="text-base-content/60">
-              Don&apos;t have an account?{" "}
+              Bạn chưa có tài khoản?{" "}
               <Link to="/signup" className="link link-primary">
-                Create account
+                Đăng ký
               </Link>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Side - Image/Pattern */}
       <AuthImagePattern
-        title={"Welcome back!"}
-        subtitle={"Sign in to continue your conversations and catch up with your messages."}
+        title={"Chào mừng bạn trở lại!"}
+        subtitle={"Hãy đăng nhập để tiếp tục cuộc trò chuyện!"}
       />
     </div>
   );

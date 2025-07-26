@@ -57,9 +57,9 @@ export const useChatStore = create((set, get) => ({
       const socket = useAuthStore.getState().socket;
       socket.emit("messageDeleted", { messageId });
       
-      toast.success("Message deleted successfully!");
+      toast.success("Xóa tin nhắn thành công!");
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to delete message.");
+      toast.error(error.response.data.message || "Không thể xóa tin nhắn. Vui lòng thử lại.");
     }
   },
 
@@ -79,9 +79,9 @@ export const useChatStore = create((set, get) => ({
       const socket = useAuthStore.getState().socket;
       socket.emit("messageUpdated", updatedMessage);
       
-      toast.success("Message updated successfully!");
+      toast.success("Cập nhật tin nhắn thành công!");
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to update message.");
+      toast.error(error.response.data.message || "Không thể cập nhật tin nhắn. Vui lòng thử lại.");
     }
   },
 
@@ -97,7 +97,7 @@ export const useChatStore = create((set, get) => ({
         ),
       });
     } catch (error) {
-      console.error("Error marking message as delivered:", error);
+      console.error("Không thể xác nhận đã gửi tin nhắn. Vui lòng thử lại.", error);
     }
   },
 
@@ -113,7 +113,7 @@ export const useChatStore = create((set, get) => ({
         ),
       });
     } catch (error) {
-      console.error("Error marking message as seen:", error);
+      console.error("Không thể cập nhật trạng thái đã xem cho tin nhắn.", error);
     }
   },
 
@@ -131,11 +131,9 @@ export const useChatStore = create((set, get) => ({
         set({
           messages: [...messages, newMessage],
         });
-        // Mark message as delivered when received
         get().markMessageAsDelivered(newMessage._id);
       }
 
-      // Tăng số tin nhắn chưa đọc nếu không phải là người đang chat
       if (!selectedUser || newMessage.senderId !== selectedUser._id) {
         set(state => ({
           unreadMessages: {
@@ -202,8 +200,8 @@ export const useChatStore = create((set, get) => ({
     socket.off("newMessage");
     socket.off("messageDelivered");
     socket.off("messageSeen");
-    socket.off("messageUpdated"); // Hủy đăng ký event cập nhật tin nhắn
-    socket.off("messageDeleted"); // Hủy đăng ký event xóa tin nhắn
+    socket.off("messageUpdated"); 
+    socket.off("messageDeleted"); 
     socket.off("typing");
     socket.off("stopTyping");
   },
@@ -211,7 +209,6 @@ export const useChatStore = create((set, get) => ({
   setSelectedUser: (user) => {
     set({ selectedUser: user });
     if (user) {
-      // Clear unread messages when selecting a user
       set(state => ({
         unreadMessages: {
           ...state.unreadMessages,

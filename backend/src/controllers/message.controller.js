@@ -12,7 +12,7 @@ export const getUsersForSidebar = async (req, res) => {
     res.status(200).json(filteredUsers);
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -31,7 +31,7 @@ export const getMessages = async (req, res) => {
     res.status(200).json(messages);
   } catch (error) {
     console.log("Error in getMessages controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -69,7 +69,7 @@ export const sendMessage = async (req, res) => {
               format: "mp4",
               transformation: [
                 { width: 380, crop: "scale" },
-                { quality: "auto:low" }
+                { quality: "auto:eco" }
               ]
             }
           ],
@@ -130,7 +130,7 @@ export const searchMessages = async (req, res) => {
     res.status(200).json(messages);
   } catch (error) {
     console.error("Lỗi khi tìm kiếm tin nhắn:", error);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -142,19 +142,19 @@ export const deleteMessage = async (req, res) => {
     const message = await Message.findById(messageId);
 
     if (!message) {
-      return res.status(404).json({ error: "Message not found" });
+      return res.status(404).json({ error: "Không tìm thấy tin nhắn" });
     }
 
     if (message.senderId.toString() !== userId.toString()) {
-      return res.status(403).json({ error: "You can only delete your own messages" });
+      return res.status(403).json({ error: "Bạn không thể xóa tin nhắn của người khác." });
     }
 
     await message.deleteOne();
 
-    res.status(200).json({ message: "Message deleted successfully" });
+    res.status(200).json({ message: "Xóa tin nhắn thành công" });
   } catch (error) {
     console.error("Error in deleteMessage: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -167,24 +167,24 @@ export const updateMessage = async (req, res) => {
     const message = await Message.findById(messageId);
 
     if (!message) {
-      return res.status(404).json({ error: "Message not found" });
+      return res.status(404).json({ error: "Không tìm thấy tin nhắn" });
     }
 
     if (message.senderId.toString() !== userId.toString()) {
-      return res.status(403).json({ error: "You can only update your own messages" });
+      return res.status(403).json({ error: "Không thể chỉnh sửa tin nhắn của người khác." });
     }
 
     if (!text) {
-      return res.status(400).json({ error: "Text cannot be empty" });
+      return res.status(400).json({ error: "Vui lòng nhập nội dung tin nhắn trước khi gửi." });
     }
 
     message.text = text;
     await message.save();
 
-    res.status(200).json({ message: "Message updated successfully", data: message });
+    res.status(200).json({ message: "Cập nhật tin nhắn thành công!", data: message });
   } catch (error) {
     console.error("Error in updateMessage: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -194,11 +194,11 @@ export const markMessageAsDelivered = async (req, res) => {
     
     const message = await Message.findById(messageId);
     if (!message) {
-      return res.status(404).json({ error: "Message not found" });
+      return res.status(404).json({ error: "Không tìm thấy tin nhắn" });
     }
 
     if (message.receiverId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Not authorized" });
+      return res.status(403).json({ error: "Không có quyền truy cập" });
     }
 
     message.status = "delivered";
@@ -216,7 +216,7 @@ export const markMessageAsDelivered = async (req, res) => {
     res.status(200).json(message);
   } catch (error) {
     console.error("Error in markMessageAsDelivered: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
 
@@ -226,11 +226,11 @@ export const markMessageAsSeen = async (req, res) => {
     
     const message = await Message.findById(messageId);
     if (!message) {
-      return res.status(404).json({ error: "Message not found" });
+      return res.status(404).json({ error: "Không tìm thấy tin nhắn" });
     }
 
     if (message.receiverId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Not authorized" });
+      return res.status(403).json({ error: "Không có quyền truy cập" });
     }
 
     message.status = "seen";
@@ -248,6 +248,6 @@ export const markMessageAsSeen = async (req, res) => {
     res.status(200).json(message);
   } catch (error) {
     console.error("Error in markMessageAsSeen: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };

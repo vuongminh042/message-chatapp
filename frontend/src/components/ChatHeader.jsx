@@ -24,16 +24,14 @@ const ChatHeader = () => {
             </div>
           </div>
 
-          {/* User info */}
           <div className="min-w-0">
             <h3 className="font-medium text-base truncate pr-2">{selectedUser.fullName}</h3>
             <p className="text-sm text-base-content/70">
-              {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+              {onlineUsers.includes(selectedUser._id) ? "Đang hoạt động" : ""}
             </p>
           </div>
         </div>
 
-        {/* Close button */}
         <button 
           onClick={() => setSelectedUser(null)}
           className="btn btn-circle btn-sm btn-ghost"
