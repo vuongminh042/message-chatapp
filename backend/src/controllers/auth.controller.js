@@ -28,7 +28,6 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
-      // generate jwt token here
       generateToken(newUser._id, res);
       await newUser.save();
 
@@ -50,6 +49,10 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    if(!email || !password) {
+      return res.status(400).json({ message: "Vui lòng nhập tất cả các trường" });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) {
