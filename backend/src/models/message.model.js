@@ -36,6 +36,10 @@ const messageSchema = new mongoose.Schema(
     },
     seenAt: {
       type: Date
+    },
+    isPinned: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

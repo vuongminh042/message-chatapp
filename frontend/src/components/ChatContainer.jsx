@@ -9,6 +9,7 @@ import { BsCheck, BsCheckAll } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
 import { Reply } from "lucide-react";
+import { FaThumbtack } from "react-icons/fa";
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -54,6 +55,7 @@ const ChatContainer = () => {
     isTyping,
     markMessageAsDelivered,
     markMessageAsSeen,
+    pinUnpinMessage,
   } = useChatStore();
   const { authUser, socket } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -291,6 +293,9 @@ const ChatContainer = () => {
     );
   }
 
+  const pinnedMessages = messages.filter(m => m.isPinned);
+  const normalMessages = messages.filter(m => !m.isPinned);
+
   return (
     <div className="flex-1 flex flex-col overflow-auto">
       <div className="flex justify-between items-center p-2 sm:p-4 border-b">
@@ -314,7 +319,7 @@ const ChatContainer = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4">
         {isBlocking ? (
           <div className="text-center text-gray-500">
             Bạn đã chặn. Vui lòng bỏ chặn để tiếp tục cuộc trò chuyện.
@@ -324,157 +329,223 @@ const ChatContainer = () => {
             Bạn đã bị chặn, không thể tiếp tục cuộc trò chuyện.
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message._id}
-              className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"} group`}
-              ref={messageEndRef}
-            >
-              <div className="chat-image avatar">
-                <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full border">
-                  <img
-                    src={
-                      message.senderId === authUser._id
-                        ? authUser.profilePic || "/avatar.png"
-                        : selectedUser.profilePic || "/avatar.png"
-                    }
-                    alt="profile pic"
-                  />
+          <>
+            {pinnedMessages.length > 0 && (
+              <div className="mb-2 sm:mb-4 p-2 sm:p-3 rounded-lg bg-blue-50 border border-blue-200 shadow-sm">
+                <div className="font-semibold text-blue-700 mb-1 sm:mb-2 flex items-center gap-2 text-base sm:text-lg">
+                  <FaThumbtack className="text-blue-500 text-base sm:text-lg" /> Tin nhắn đã ghim
                 </div>
-              </div>
-              <div className="chat-header mb-1 flex items-center justify-end">
-                {message.senderId === authUser._id && (
-                  <div className="flex gap-2">
-                    <button
-                      className="text-red-500 text-xs"
-                      onClick={() => handleDeleteMessage(message._id)}
+                <div className="flex flex-col gap-1 sm:gap-2">
+                  {pinnedMessages.map((message) => (
+                    <div
+                      key={message._id}
+                      className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"} group relative`}
                     >
-                      <MdDelete />
-                    </button>
-                    <button
-                      className="text-blue-500 text-xs"
-                      onClick={() => handleEditMessage(message)}
-                    >
-                      <MdEdit />
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="relative">
-                {message.replyTo && (
-                  <div 
-                    className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg bg-base-200 mb-1 cursor-pointer hover:bg-base-300 transition-colors max-w-[200px] ${
-                      message.senderId === authUser._id ? "ml-auto" : "mr-auto"
-                    }`}
-                    onClick={() => {
-                      const replyMessage = messages.find(m => m._id === message.replyTo._id);
-                      if (replyMessage) {
-                        const element = document.getElementById(replyMessage._id);
-                        element?.scrollIntoView({ behavior: "smooth", block: "center" });
-                        element?.classList.add("highlight");
-                        setTimeout(() => element?.classList.remove("highlight"), 2000);
-                      }
-                    }}
-                  >
-                    <Reply size={12} />
-                    <div className="flex-1 truncate">
-                      <span className="opacity-70">
-                        {message.replyTo.senderId === authUser._id ? "You" : selectedUser.username}
-                      </span>
-                      <p className="truncate">{message.replyTo.text || "Image message"}</p>
-                    </div>
-                  </div>
-                )}
-                <div id={message._id} className="chat-bubble flex flex-col min-w-0">
-                  {editingMessage === message._id ? (
-                    <div className="flex flex-col gap-2">
-                      <input
-                        type="text"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="input input-bordered input-sm"
-                      />
-                      <div className="flex gap-2">
+                      <div className="chat-header mb-0.5 sm:mb-1 flex items-center justify-end">
                         <button
-                          className="btn btn-xs btn-success"
-                          onClick={() => handleSaveEdit(message._id)}
+                          className={`ml-1 sm:ml-2 text-xs sm:text-sm ${message.isPinned ? "text-blue-500" : "text-gray-400"}`}
+                          title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
+                          onClick={() => pinUnpinMessage(message._id)}
                         >
-                          Lưu
-                        </button>
-                        <button
-                          className="btn btn-xs btn-error"
-                          onClick={handleCancelEdit}
-                        >
-                          Hủy
+                          <FaThumbtack style={{ transform: message.isPinned ? "rotate(-45deg)" : "none" }} className="text-base sm:text-lg" />
                         </button>
                       </div>
+                      <div className="chat-bubble flex flex-col min-w-0 bg-blue-100 border border-blue-200 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-base">
+                        {message.image && (
+                          <img
+                            src={message.image}
+                            alt="Attachment"
+                            className="max-w-[120px] sm:max-w-[200px] rounded-md mb-1 sm:mb-2 cursor-pointer"
+                            onClick={() => openImageModal(message.image)}
+                          />
+                        )}
+                        {message.video && (
+                          <div className="video-wrapper">
+                            <video
+                              src={message.video}
+                              controls
+                              preload="none"
+                              className="w-[80px] sm:w-[320px] rounded-md mb-1 sm:mb-2"
+                              poster="/video-thumbnail.png"
+                            />
+                          </div>
+                        )}
+                        {message.text && (
+                          <p className="whitespace-pre-wrap break-words text-black text-xs sm:text-base">
+                            {convertUrlsToLinks(message.text)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="chat-footer text-[10px] sm:text-xs flex gap-1 sm:gap-2 items-center mt-0.5 sm:mt-1.5">
+                        <time className="ml-1 opacity-50">
+                          {formatMessageTime(message.createdAt)}
+                        </time>
+                      </div>
                     </div>
-                  ) : (
-                    <>
-                      {message.image && (
-                        <img
-                          src={message.image}
-                          alt="Attachment"
-                          className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer"
-                          onClick={() => openImageModal(message.image)}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {normalMessages.map((message, idx) => (
+              <div
+                key={message._id}
+                className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"} group`}
+                ref={idx === normalMessages.length - 1 ? messageEndRef : null}
+              >
+                <div className="chat-image avatar">
+                  <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full border">
+                    <img
+                      src={
+                        message.senderId === authUser._id
+                          ? authUser.profilePic || "/avatar.png"
+                          : selectedUser.profilePic || "/avatar.png"
+                      }
+                      alt="profile pic"
+                    />
+                  </div>
+                </div>
+                <div className="chat-header mb-1 flex items-center justify-end">
+                  {message.senderId === authUser._id && (
+                    <div className="flex gap-2">
+                      <button
+                        className="text-red-500 text-xs"
+                        onClick={() => handleDeleteMessage(message._id)}
+                      >
+                        <MdDelete />
+                      </button>
+                      <button
+                        className="text-blue-500 text-xs"
+                        onClick={() => handleEditMessage(message)}
+                      >
+                        <MdEdit />
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    className={`ml-2 text-xs ${message.isPinned ? "text-yellow-500" : "text-gray-400"}`}
+                    title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
+                    onClick={() => pinUnpinMessage(message._id)}
+                  >
+                    <FaThumbtack style={{ transform: message.isPinned ? "rotate(-45deg)" : "none" }} />
+                  </button>
+                </div>
+                <div className="relative">
+                  {message.replyTo && (
+                    <div 
+                      className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg bg-base-200 mb-1 cursor-pointer hover:bg-base-300 transition-colors max-w-[200px] ${
+                        message.senderId === authUser._id ? "ml-auto" : "mr-auto"
+                      }`}
+                      onClick={() => {
+                        const replyMessage = messages.find(m => m._id === message.replyTo._id);
+                        if (replyMessage) {
+                          const element = document.getElementById(replyMessage._id);
+                          element?.scrollIntoView({ behavior: "smooth", block: "center" });
+                          element?.classList.add("highlight");
+                          setTimeout(() => element?.classList.remove("highlight"), 2000);
+                        }
+                      }}
+                    >
+                      <Reply size={12} />
+                      <div className="flex-1 truncate">
+                        <span className="opacity-70">
+                          {message.replyTo.senderId === authUser._id ? "You" : selectedUser.username}
+                        </span>
+                        <p className="truncate">{message.replyTo.text || "Image message"}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div id={message._id} className="chat-bubble flex flex-col min-w-0">
+                    {editingMessage === message._id ? (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="text"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="input input-bordered input-sm"
                         />
+                        <div className="flex gap-2">
+                          <button
+                            className="btn btn-xs btn-success"
+                            onClick={() => handleSaveEdit(message._id)}
+                          >
+                            Lưu
+                          </button>
+                          <button
+                            className="btn btn-xs btn-error"
+                            onClick={handleCancelEdit}
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {message.image && (
+                          <img
+                            src={message.image}
+                            alt="Attachment"
+                            className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer"
+                            onClick={() => openImageModal(message.image)}
+                          />
+                        )}
+                        {message.video && (
+                          <div className="video-wrapper">
+                            <video
+                              src={message.video}
+                              controls
+                              preload="none"
+                              className="w-[100px] sm:w-[320px] rounded-md mb-2"
+                              poster="/video-thumbnail.png"
+                            />
+                          </div>
+                        )}
+                        {message.text && (
+                          <p className="whitespace-pre-wrap break-words">
+                            {convertUrlsToLinks(message.text)}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  <button
+                    className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity btn btn-ghost btn-xs btn-circle"
+                    onClick={() => handleReplyMessage(message)}
+                    style={{
+                      [message.senderId === authUser._id ? "left" : "right"]: "-24px"
+                    }}
+                  >
+                    <Reply size={14} />
+                  </button>
+                </div>
+                <div className="chat-footer text-xs flex gap-2 items-center mt-1.5">
+                  <time className="ml-1 opacity-50">
+                    {formatMessageTime(message.createdAt)}
+                  </time>
+                  {message.senderId === authUser._id && (
+                    <span className="flex items-center gap-1">
+                      {message.status === "sent" && <BsCheck className="text-red-500 font-bold" />}
+                      {message.status === "delivered" && (
+                        <span className="flex items-center gap-1">
+                          <BsCheckAll className="text-red-500 font-bold" />
+                          <span className="text-xs text-red-500">Đã nhận</span>
+                        </span>
                       )}
-                      {message.video && (
-                        <div className="video-wrapper">
-                          <video
-                            src={message.video}
-                            controls
-                            preload="none"
-                            className="w-[100px] sm:w-[320px] rounded-md mb-2"
-                            poster="/video-thumbnail.png"
+                      {message.status === "seen" && (
+                        <div className="w-4 h-4 rounded-full overflow-hidden border border-gray-200">
+                          <img 
+                            src={selectedUser.profilePic || "/avatar.png"} 
+                            alt="Seen by" 
+                            className="w-full h-full object-cover contrast-125"
                           />
                         </div>
                       )}
-                      {message.text && (
-                        <p className="whitespace-pre-wrap break-words">
-                          {convertUrlsToLinks(message.text)}
-                        </p>
-                      )}
-                    </>
+                    </span>
                   )}
                 </div>
-                <button
-                  className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity btn btn-ghost btn-xs btn-circle"
-                  onClick={() => handleReplyMessage(message)}
-                  style={{
-                    [message.senderId === authUser._id ? "left" : "right"]: "-24px"
-                  }}
-                >
-                  <Reply size={14} />
-                </button>
               </div>
-              <div className="chat-footer text-xs flex gap-2 items-center mt-1.5">
-                <time className="ml-1 opacity-50">
-                  {formatMessageTime(message.createdAt)}
-                </time>
-                {message.senderId === authUser._id && (
-                  <span className="flex items-center gap-1">
-                    {message.status === "sent" && <BsCheck className="text-red-500 font-bold" />}
-                    {message.status === "delivered" && (
-                      <span className="flex items-center gap-1">
-                        <BsCheckAll className="text-red-500 font-bold" />
-                        <span className="text-xs text-red-500">Đã nhận</span>
-                      </span>
-                    )}
-                    {message.status === "seen" && (
-                      <div className="w-4 h-4 rounded-full overflow-hidden border border-gray-200">
-                        <img 
-                          src={selectedUser.profilePic || "/avatar.png"} 
-                          alt="Seen by" 
-                          className="w-full h-full object-cover contrast-125"
-                        />
-                      </div>
-                    )}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))
+            ))}
+          </>
         )}
         {!isBlocking && !isBlockedBy && isTyping && (
           <div className="chat chat-start">

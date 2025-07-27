@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
 import { useAuthStore } from "../store/useAuthStore";
 
-// Định nghĩa styles
 const styles = {
   fadeIn: {
     animation: 'fadeIn 0.2s ease-in-out',

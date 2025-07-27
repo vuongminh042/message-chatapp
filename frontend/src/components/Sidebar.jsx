@@ -32,7 +32,6 @@ const Sidebar = () => {
           <Users className="size-6" />
           <span className="font-medium hidden lg:block">Liên hệ</span>
         </div>
-        {/* Search Input */}
         <div className="mt-3 relative">
           <input
             type="text"

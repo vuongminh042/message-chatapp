@@ -117,6 +117,22 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  pinUnpinMessage: async (messageId) => {
+    const { messages } = get();
+    try {
+      const res = await axiosInstance.put(`/messages/${messageId}/pin`);
+      const updatedMessage = res.data.data;
+      set({
+        messages: messages.map((message) =>
+          message._id === messageId ? updatedMessage : message
+        ),
+      });
+      toast.success(res.data.message);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Không thể ghim/bỏ ghim tin nhắn");
+    }
+  },
+
   subscribeToMessages: () => {
     const { selectedUser } = get();
     if (!selectedUser) return;

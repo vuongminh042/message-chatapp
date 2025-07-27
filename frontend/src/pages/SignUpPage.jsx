@@ -138,8 +138,6 @@ const SignUpPage = () => {
         </div>
       </div>
 
-      {/* right side */}
-
       <AuthImagePattern
         title="Tham gia cộng đồng của chúng tôi"
         subtitle="Kết nối mọi lúc, sẻ chia mọi điều – với những người bạn yêu quý."
