@@ -1,4 +1,4 @@
-import { LogOut, MessageCircle, Settings, User, Search } from "lucide-react";
+import { LogOut, MessageCircle, Settings, User, Search, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useState } from "react";
@@ -44,6 +44,20 @@ const Navbar = ({ handleHighlightMessage }) => {
         </Link>
 
         <div className="flex items-center gap-6">
+          {authUser && (
+            <>
+              <Link to="/" className="text-gray-300 hover:text-white transition-all flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                <span className="hidden sm:inline">Chat 1-1</span>
+              </Link>
+
+              <Link to="/groups" className="text-gray-300 hover:text-white transition-all flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                <span className="hidden sm:inline">Nhóm chat</span>
+              </Link>
+            </>
+          )}
+
           <Link to={"/settings"} className="text-gray-300 hover:text-white transition-all flex items-center gap-2">
             <Settings className="w-5 h-5" />
             <span className="hidden sm:inline">Cài đặt</span>
