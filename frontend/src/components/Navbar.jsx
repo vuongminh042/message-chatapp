@@ -34,31 +34,31 @@ const Navbar = ({ handleHighlightMessage }) => {
   };
 
   return (
-    <header className="bg-gray-900 border-b border-gray-800 fixed w-full top-0 z-40 backdrop-blur-lg bg-opacity-80">
+    <header className="bg-orange-600 border-b border-gray-800 fixed w-full top-0 z-40 backdrop-blur-lg bg-opacity-80">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 text-white hover:opacity-80 transition-all">
-          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary/20">
-            <MessageCircle className="w-5 h-5 text-primary" />
+          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/20">
+            <MessageCircle className="w-5 h-5 text-danger" />
           </div>
-          <h1 className="text-lg font-semibold">Message Chat</h1>
+          <h1 className="text-lg font-semibold">Blink Chat</h1>
         </Link>
 
         <div className="flex items-center gap-6">
           <Link to={"/settings"} className="text-gray-300 hover:text-white transition-all flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            <span className="hidden sm:inline">Cài đặt</span>
+            <Settings className="w-5 h-5 text-white" />
+            <span className="hidden sm:inline text-white font-bold">Cài đặt</span>
           </Link>
 
           {authUser && (
             <>
-              <Link to={"/profile"} className="text-gray-300 hover:text-white transition-all flex items-center gap-2">
-                <User className="w-5 h-5" />
-                <span className="hidden sm:inline">Hồ sơ</span>
+              <Link to={"/profile"} className="text-white-500 hover:text-white transition-all flex items-center gap-2">
+                <User className="w-5 h-5 text-white" />
+                <span className="hidden sm:inline text-white font-bold">Hồ sơ</span>
               </Link>
 
               <button className="text-gray-300 hover:text-white transition-all flex items-center gap-2" onClick={logout}>
-                <LogOut className="w-5 h-5" />
-                <span className="hidden sm:inline">Đăng xuất</span>
+                <LogOut className="w-5 h-5 text-white " />
+                <span className="hidden sm:inline text-white font-bold">Đăng xuất</span>
               </button>
             </>
           )}

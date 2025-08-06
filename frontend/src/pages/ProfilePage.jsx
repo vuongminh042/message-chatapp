@@ -22,76 +22,72 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="h-screen pt-20">
-      <div className="max-w-2xl mx-auto p-4 py-8">
-        <div className="bg-base-300 rounded-xl p-6 space-y-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold ">Hồ sơ của bạn</h1>
-            <p className="mt-2">Thông tin cá nhân của bạn</p>
-          </div>
+    <div className="h-screen pt-20 bg-white text-white">
+      <div className="max-w-2xl mx-auto p-6 py-10 bg-gray-800 rounded-3xl shadow-lg">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-semibold">Hồ sơ của bạn</h1>
+          <p className="mt-2 text-white">Thông tin cá nhân của bạn</p>
+        </div>
 
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="Profile"
-                className="size-32 rounded-full object-cover border-4 "
+        <div className="flex flex-col items-center gap-6 mb-10">
+          <div className="relative">
+            <img
+              src={selectedImg || authUser.profilePic || "/avatar.png"}
+              alt="Profile"
+              className="w-40 h-40 rounded-full object-cover border-4 border-blue-600 shadow-md"
+            />
+            <label
+              htmlFor="avatar-upload"
+              className={`
+                absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700
+                p-3 rounded-full cursor-pointer transition-transform duration-200
+                ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+              `}
+            >
+              <Camera className="w-6 h-6 text-white" />
+              <input
+                type="file"
+                id="avatar-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUpdatingProfile}
               />
-              <label
-                htmlFor="avatar-upload"
-                className={`
-                  absolute bottom-0 right-0 
-                  bg-base-content hover:scale-105
-                  p-2 rounded-full cursor-pointer 
-                  transition-all duration-200
-                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
-                `}
-              >
-                <Camera className="w-5 h-5 text-base-200" />
-                <input
-                  type="file"
-                  id="avatar-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUpdatingProfile}
-                />
-              </label>
+            </label>
+          </div>
+          <p className="text-sm text-white">
+            {isUpdatingProfile ? "Đang tải ảnh lên..." : "Nhấn vào biểu tượng máy ảnh để cập nhật ảnh đại diện của bạn"}
+          </p>
+        </div>
+
+        <div className="space-y-8">
+          <div>
+            <div className="flex items-center gap-3 text-gray-400 mb-2">
+              <User className="w-5 h-5 text-white" />
+              <span className="text-white">Họ và Tên</span>
             </div>
-            <p className="text-sm text-zinc-400">
-              {isUpdatingProfile ? "Uploading..." : "Nhấn vào biểu tượng máy ảnh để cập nhật ảnh đại diện của bạn"}
-            </p>
+            <p className="px-5 py-3 bg-gray-700 rounded-xl border border-gray-600 text-lg">{authUser?.fullName}</p>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Họ và Tên
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
+          <div>
+            <div className="flex items-center gap-3 text-gray-400 mb-2">
+              <Mail className="w-5 h-5 text-white" />
+              <span className="text-white">Địa chỉ Email</span>
             </div>
-
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Địa chỉ Email
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
-            </div>
+            <p className="px-5 py-3 bg-gray-700 rounded-xl border border-gray-600 text-lg">{authUser?.email}</p>
           </div>
+        </div>
 
-          <div className="mt-6 bg-base-300 rounded-xl p-6">
-            <h2 className="text-lg font-medium  mb-4">Thông tin tài khoản</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
-                <span>Gia nhập từ</span>
-                <span>{authUser.createdAt?.split("T")[0]}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span>Trạng thái hoạt động</span>
-                <span className="text-green-500">Đang hoạt động</span>
-              </div>
+        <div className="mt-12 bg-gray-800 rounded-3xl p-6 shadow-inner">
+          <h2 className="text-xl font-semibold mb-6 text-blue-400">Thông tin tài khoản</h2>
+          <div className="space-y-4 text-gray-300 text-base">
+            <div className="flex items-center justify-between border-b border-gray-700 pb-3">
+              <span className="text-white">Gia nhập từ</span>
+              <span>{authUser.createdAt?.split("T")[0]}</span>
+            </div>
+            <div className="flex items-center justify-between pt-3">
+              <span className="text-white">Trạng thái hoạt động</span>
+              <span className="text-green-400 font-semibold">Đang hoạt động</span>
             </div>
           </div>
         </div>

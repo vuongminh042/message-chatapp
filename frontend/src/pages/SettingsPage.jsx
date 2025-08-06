@@ -14,8 +14,8 @@ const SettingsPage = () => {
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
       <div className="space-y-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold">Giao diện chat</h2>
-          <p className="text-sm text-base-content/70">Chọn giao diện cho đoạn chat của bạn</p>
+          <h2 className="text-lg font-bold text-orange-400">Giao diện chat</h2>
+          <p className="text-sm text-base-content/70 text-orange-400">Chọn giao diện cho đoạn chat của bạn</p>
         </div>
 
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">

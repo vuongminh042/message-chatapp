@@ -10,12 +10,12 @@ const NoChatSelected = () => {
               className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center
              justify-center animate-bounce"
             >
-              <MessageCircle className="w-8 h-8 text-primary " />
+              <MessageCircle className="w-8 h-8 text-primary" />
             </div>
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold">Welcome to Message Chat!</h2>
+        <h2 className="text-2xl font-bold">Chào mừng bạn đến với Blink Chat!</h2>
       </div>
     </div>
   );

@@ -50,10 +50,7 @@ export const useChatStore = create((set, get) => ({
     const { messages } = get();
     try {
       await axiosInstance.delete(`/messages/${messageId}`);
-      // Cập nhật danh sách tin nhắn sau khi xóa
       set({ messages: messages.filter((message) => message._id !== messageId) });
-      
-      // Emit socket event để thông báo tin nhắn đã bị xóa
       const socket = useAuthStore.getState().socket;
       socket.emit("messageDeleted", { messageId });
       
@@ -68,8 +65,7 @@ export const useChatStore = create((set, get) => ({
     try {
       const res = await axiosInstance.put(`/messages/${messageId}`, { text: newText });
       const updatedMessage = { ...messages.find(m => m._id === messageId), text: res.data.text };
-      
-      // Cập nhật tin nhắn trong danh sách
+    
       set({
         messages: messages.map((message) =>
           message._id === messageId ? updatedMessage : message
@@ -141,8 +137,7 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("newMessage", (newMessage) => {
       const { selectedUser, messages } = get();
-      
-      // Nếu tin nhắn đến từ người đang chat
+    
       if (selectedUser && newMessage.senderId === selectedUser._id) {
         set({
           messages: [...messages, newMessage],
