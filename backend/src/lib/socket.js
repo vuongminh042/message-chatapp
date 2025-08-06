@@ -9,7 +9,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.NODE_ENV === "production"
-      ? "https://message-chatapp.onrender.com"
+      ? "https://blink-chat-9wt2.onrender.com"
       : "http://localhost:5173",
     credentials: true
   },
@@ -19,7 +19,7 @@ export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
 }
 
-const userSocketMap = {}; 
+const userSocketMap = {};
 
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
@@ -78,7 +78,7 @@ io.on("connection", (socket) => {
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
-  
+
 });
 
 export { io, app, server };

@@ -65,13 +65,13 @@ const ChatContainer = () => {
   const [editText, setEditText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [isBlocking, setIsBlocking] = useState(false); 
+  const [isBlocking, setIsBlocking] = useState(false);
   const [isBlockedBy, setIsBlockedBy] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
 
   const BASE_URL = import.meta.env.MODE === "development"
     ? "http://localhost:8000"
-    : "https://message-chatapp.onrender.com";
+    : "https://blink-chat-9wt2.onrender.com";
 
   useEffect(() => {
     const checkBlockStatus = async () => {
@@ -265,10 +265,10 @@ const ChatContainer = () => {
     return text.split(urlRegex).map((part, i) => {
       if (part.match(urlRegex)) {
         return (
-          <a 
-            key={i} 
-            href={part} 
-            target="_blank" 
+          <a
+            key={i}
+            href={part}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-blue-200 underline"
             onClick={(e) => {
@@ -432,10 +432,9 @@ const ChatContainer = () => {
                 </div>
                 <div className="relative">
                   {message.replyTo && (
-                    <div 
-                      className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg bg-base-200 mb-1 cursor-pointer hover:bg-base-300 transition-colors max-w-[200px] ${
-                        message.senderId === authUser._id ? "ml-auto" : "mr-auto"
-                      }`}
+                    <div
+                      className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg bg-base-200 mb-1 cursor-pointer hover:bg-base-300 transition-colors max-w-[200px] ${message.senderId === authUser._id ? "ml-auto" : "mr-auto"
+                        }`}
                       onClick={() => {
                         const replyMessage = messages.find(m => m._id === message.replyTo._id);
                         if (replyMessage) {
@@ -533,9 +532,9 @@ const ChatContainer = () => {
                       )}
                       {message.status === "seen" && (
                         <div className="w-4 h-4 rounded-full overflow-hidden border border-gray-200">
-                          <img 
-                            src={selectedUser.profilePic || "/avatar.png"} 
-                            alt="Seen by" 
+                          <img
+                            src={selectedUser.profilePic || "/avatar.png"}
+                            alt="Seen by"
                             className="w-full h-full object-cover contrast-125"
                           />
                         </div>
@@ -569,7 +568,7 @@ const ChatContainer = () => {
 
       {!isBlocking && !isBlockedBy && (
         <div onFocus={handleInputFocus}>
-          <MessageInput 
+          <MessageInput
             ref={inputRef}
             replyTo={replyTo}
             onCancelReply={handleCancelReply}

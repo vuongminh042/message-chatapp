@@ -16,11 +16,10 @@ dotenv.config();
 const PORT = process.env.PORT;
 const __dirname = path.resolve();
 
-// Cấu hình CORS
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" 
-      ? "https://message-chatapp.onrender.com"
+    origin: process.env.NODE_ENV === "production"
+      ? "https://blink-chat-9wt2.onrender.com"
       : "http://localhost:5173",
     credentials: true,
   })
