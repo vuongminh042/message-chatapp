@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useThemeStore } from "../store/useThemeStore";
+import { THEMES } from "../constants";
 import ChatHeader from "./ChatHeader";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import MessageInput from "./MessageInput";
@@ -8,7 +10,7 @@ import { toast } from "react-hot-toast";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
-import { Reply } from "lucide-react";
+import { Reply, Palette } from "lucide-react";
 import { FaThumbtack } from "react-icons/fa";
 
 const formatMessageTime = (timestamp) => {
@@ -58,6 +60,7 @@ const ChatContainer = () => {
     pinUnpinMessage,
   } = useChatStore();
   const { authUser, socket } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -68,6 +71,7 @@ const ChatContainer = () => {
   const [isBlocking, setIsBlocking] = useState(false);
   const [isBlockedBy, setIsBlockedBy] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   const BASE_URL = import.meta.env.MODE === "development"
     ? "http://localhost:8000"
@@ -96,6 +100,19 @@ const ChatContainer = () => {
       checkBlockStatus();
     }
   }, [selectedUser, authUser._id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showThemeSelector && !event.target.closest('.theme-selector') && !event.target.closest('.theme-button')) {
+        setShowThemeSelector(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showThemeSelector]);
 
   useEffect(() => {
     if (socket && selectedUser) {
@@ -283,6 +300,17 @@ const ChatContainer = () => {
     });
   };
 
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme, selectedUser, socket, authUser._id, authUser.fullName);
+    setShowThemeSelector(false);
+    
+    if (selectedUser) {
+      toast.success(`Đã thay đổi giao diện thành ${newTheme}!`);
+    } else {
+      toast.success(`Đã thay đổi giao diện thành ${newTheme}!`);
+    }
+  };
+
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
@@ -297,29 +325,67 @@ const ChatContainer = () => {
   const normalMessages = messages.filter(m => !m.isPinned);
 
   return (
-    <div className="flex-1 flex flex-col overflow-auto">
-      <div className="flex justify-between items-center p-2 sm:p-4 border-b">
+    <div className="flex-1 flex flex-col h-full">
+      <div className="flex justify-between items-center p-2 sm:p-4 border-b flex-shrink-0">
         <ChatHeader />
-        {isBlocking ? (
-          <button
-            className="btn btn-xs sm:btn-sm btn-success text-white"
-            onClick={handleUnblockUser}
-            disabled={!socket}
-          >
-            Bỏ chặn
-          </button>
-        ) : (
-          <button
-            className="btn btn-xs sm:btn-sm btn-error text-white"
-            onClick={handleBlockUser}
-            disabled={!socket || isBlockedBy}
-          >
-            Chặn
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              className="theme-button btn btn-xs sm:btn-sm btn-outline btn-primary"
+              onClick={() => setShowThemeSelector(!showThemeSelector)}
+              title="Thay đổi giao diện"
+            >
+              <Palette className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+            
+            {showThemeSelector && (
+              <div className="theme-selector absolute right-0 top-full mt-2 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 min-w-[200px]">
+                <div className="p-3 border-b border-base-300">
+                  <h4 className="font-medium text-sm">Chọn giao diện</h4>
+                  <p className="text-xs text-base-content/70">Thay đổi sẽ đồng bộ với người chat</p>
+                </div>
+                <div className="p-3 space-y-2 max-h-48 overflow-y-auto">
+                  {THEMES.map((themeValue) => (
+                    <button
+                      key={themeValue}
+                      onClick={() => handleThemeChange(themeValue)}
+                      className={`
+                        w-full text-left px-3 py-2 rounded-md text-sm transition-colors
+                        ${theme === themeValue 
+                          ? 'bg-primary text-primary-content' 
+                          : 'hover:bg-base-200'
+                        }
+                      `}
+                    >
+                      {themeValue.charAt(0).toUpperCase() + themeValue.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {isBlocking ? (
+            <button
+              className="btn btn-xs sm:btn-sm btn-success text-white"
+              onClick={handleUnblockUser}
+              disabled={!socket}
+            >
+              Bỏ chặn
+            </button>
+          ) : (
+            <button
+              className="btn btn-xs sm:btn-sm btn-error text-white"
+              onClick={handleBlockUser}
+              disabled={!socket || isBlockedBy}
+            >
+              Chặn
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4 min-h-0">
         {isBlocking ? (
           <div className="text-center text-gray-500">
             Bạn đã chặn. Vui lòng bỏ chặn để tiếp tục cuộc trò chuyện.
@@ -567,7 +633,7 @@ const ChatContainer = () => {
       </div>
 
       {!isBlocking && !isBlockedBy && (
-        <div onFocus={handleInputFocus}>
+        <div className="flex-shrink-0 border-t border-base-300" onFocus={handleInputFocus}>
           <MessageInput
             ref={inputRef}
             replyTo={replyTo}

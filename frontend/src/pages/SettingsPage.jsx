@@ -1,6 +1,10 @@
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
-import { Send } from "lucide-react";
+import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore";
+import { Send, Check } from "lucide-react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -9,6 +13,25 @@ const PREVIEW_MESSAGES = [
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
+  const { selectedUser } = useChatStore();
+  const { authUser } = useAuthStore();
+  const [selectedTheme, setSelectedTheme] = useState(theme);
+
+  const handleThemeSelect = (newTheme) => {
+    setSelectedTheme(newTheme);
+  };
+
+  const handleApplyTheme = () => {
+    setTheme(selectedTheme);
+    toast.success("Đã áp dụng giao diện mới!", {
+      duration: 3000,
+      position: "top-center",
+      style: {
+        background: "var(--color-primary)",
+        color: "var(--color-primary-content)",
+      },
+    });
+  };
 
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
@@ -24,9 +47,9 @@ const SettingsPage = () => {
               key={t}
               className={`
                 group flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors
-                ${theme === t ? "bg-base-200" : "hover:bg-base-200/50"}
+                ${selectedTheme === t ? "bg-base-200 ring-2 ring-primary" : "hover:bg-base-200/50"}
               `}
-              onClick={() => setTheme(t)}
+              onClick={() => handleThemeSelect(t)}
             >
               <div className="relative h-8 w-full rounded-md overflow-hidden" data-theme={t}>
                 <div className="absolute inset-0 grid grid-cols-4 gap-px p-1">
@@ -43,14 +66,28 @@ const SettingsPage = () => {
           ))}
         </div>
 
+        <div className="flex justify-center">
+          <button
+            onClick={handleApplyTheme}
+            disabled={selectedTheme === theme}
+            className={`
+              btn btn-primary px-8 flex items-center gap-2
+              ${selectedTheme === theme ? 'btn-disabled opacity-50' : ''}
+            `}
+          >
+            <Check className="w-4 h-4" />
+            Áp dụng giao diện
+          </button>
+        </div>
+
         <h3 className="text-lg font-semibold mb-3">Xem trước giao diện chat</h3>
-        <div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-lg">
-          <div className="p-4 bg-base-200">
+        <div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-lg" data-theme={selectedTheme}>
+          <div className="p-4 bg-base-200" data-theme={selectedTheme}>
             <div className="max-w-lg mx-auto">
-              <div className="bg-base-100 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 border-b border-base-300 bg-base-100">
+              <div className="bg-base-100 rounded-xl shadow-sm overflow-hidden" data-theme={selectedTheme}>
+                <div className="px-4 py-3 border-b border-base-300 bg-base-100" data-theme={selectedTheme}>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium" data-theme={selectedTheme}>
                       J
                     </div>
                     <div>
@@ -60,7 +97,7 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                <div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100">
+                <div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100" data-theme={selectedTheme}>
                   {PREVIEW_MESSAGES.map((message) => (
                     <div
                       key={message.id}
@@ -71,6 +108,7 @@ const SettingsPage = () => {
                           max-w-[80%] rounded-xl p-3 shadow-sm
                           ${message.isSent ? "bg-primary text-primary-content" : "bg-base-200"}
                         `}
+                        data-theme={selectedTheme}
                       >
                         <p className="text-sm">{message.content}</p>
                         <p
@@ -86,7 +124,7 @@ const SettingsPage = () => {
                   ))}
                 </div>
 
-                <div className="p-4 border-t border-base-300 bg-base-100">
+                <div className="p-4 border-t border-base-300 bg-base-100" data-theme={selectedTheme}>
                   <div className="flex gap-2">
                     <input
                       type="text"

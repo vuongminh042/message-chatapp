@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 
 import { useAuthStore } from "./useAuthStore";
 import axiosInstance from "../lib/axios";
+import { useThemeStore } from "./useThemeStore";
 
 export const useChatStore = create((set, get) => ({
   messages: [],
@@ -155,6 +156,22 @@ export const useChatStore = create((set, get) => ({
       }
     });
 
+    socket.on("themeChanged", ({ newTheme, username }) => {
+      console.log("Received themeChanged event:", { newTheme, username });
+      
+      const { setThemeFromNotification } = useThemeStore.getState();
+      setThemeFromNotification(newTheme);
+    
+      toast.success(`${username} đã thay đổi giao diện thành ${newTheme}`, {
+        duration: 4000,
+        position: "top-center",
+        style: {
+          background: "#ffffff",
+          color: "#00000",
+        },
+      });
+    });
+
     socket.on("messageDelivered", ({ messageId, deliveredAt }) => {
       const { messages } = get();
       set({
@@ -215,6 +232,7 @@ export const useChatStore = create((set, get) => ({
     socket.off("messageDeleted"); 
     socket.off("typing");
     socket.off("stopTyping");
+    socket.off("themeChanged");
   },
 
   setSelectedUser: (user) => {

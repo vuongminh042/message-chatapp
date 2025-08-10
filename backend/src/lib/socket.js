@@ -73,6 +73,27 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("themeChanged", ({ newTheme, userId, username, receiverId }) => {
+    console.log("Received themeChanged event:", {
+      newTheme,
+      userId,
+      username,
+      receiverId,
+      receiverSocketId: userSocketMap[receiverId]
+    });
+    
+    if (receiverId && userSocketMap[receiverId]) {
+      console.log("Sending themeChanged to receiver:", receiverId);
+      socket.to(userSocketMap[receiverId]).emit("themeChanged", {
+        newTheme,
+        userId,
+        username
+      });
+    } else {
+      console.log("Receiver not found or not online:", receiverId);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];

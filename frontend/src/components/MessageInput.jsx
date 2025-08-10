@@ -41,7 +41,7 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
-      setVideoPreview(null); // Reset video preview when image is selected
+      setVideoPreview(null); 
     };
     reader.readAsDataURL(file);
     setShowPlusMenu(false);
@@ -54,7 +54,7 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
       return;
     }
 
-    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+    if (file.size > 50 * 1024 * 1024) { 
       toast.error("Video không được vượt quá 50MB");
       return;
     }
@@ -62,7 +62,7 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setVideoPreview(reader.result);
-      setImagePreview(null); // Reset image preview when video is selected
+      setImagePreview(null); 
     };
     reader.readAsDataURL(file);
     setShowPlusMenu(false);
@@ -103,7 +103,6 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
     setText((prevText) => prevText + emoji.emoji);
   };
 
-  // Click outside to close menus
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showPlusMenu) {
@@ -119,7 +118,7 @@ const MessageInput = forwardRef(({ replyTo, onCancelReply }, ref) => {
   }, [showPlusMenu]);
 
   return (
-    <div className="p-4 w-full">
+    <div className="p-3 w-full">
       <style>
         {`
           @keyframes fadeIn {

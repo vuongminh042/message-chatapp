@@ -1,11 +1,11 @@
-import { LogOut, MessageCircle, Settings, User, Search } from "lucide-react";
+import { LogOut, MessageCircle, Settings, User, Search, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useState } from "react";
 import axiosInstance from "../lib/axios";
 import { debounce } from "lodash";
 
-const Navbar = ({ handleHighlightMessage }) => {
+const Navbar = ({ handleHighlightMessage, handleToggleSidebar }) => {
   const { logout, authUser } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -44,6 +44,16 @@ const Navbar = ({ handleHighlightMessage }) => {
         </Link>
 
         <div className="flex items-center gap-6">
+          {authUser && (
+            <button 
+              onClick={handleToggleSidebar}
+              className="text-gray-300 hover:text-white transition-all flex items-center gap-2 lg:hidden"
+            >
+              <Menu className="w-5 h-5 text-white" />
+              <span className="hidden sm:inline text-white font-bold">Menu</span>
+            </button>
+          )}
+
           <Link to={"/settings"} className="text-gray-300 hover:text-white transition-all flex items-center gap-2">
             <Settings className="w-5 h-5 text-white" />
             <span className="hidden sm:inline text-white font-bold">Cài đặt</span>

@@ -252,7 +252,6 @@ export const markMessageAsSeen = async (req, res) => {
   }
 };
 
-// Ghim hoặc bỏ ghim tin nhắn
 export const pinUnpinMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
@@ -261,7 +260,6 @@ export const pinUnpinMessage = async (req, res) => {
     if (!message) {
       return res.status(404).json({ error: "Không tìm thấy tin nhắn" });
     }
-    // Chỉ cho phép người gửi hoặc người nhận ghim/bỏ ghim
     if (
       message.senderId.toString() !== userId.toString() &&
       message.receiverId.toString() !== userId.toString()
