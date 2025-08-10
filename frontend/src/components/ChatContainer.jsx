@@ -305,9 +305,9 @@ const ChatContainer = () => {
     setShowThemeSelector(false);
     
     if (selectedUser) {
-      toast.success(`Đã thay đổi giao diện thành ${newTheme}!`);
+      toast.success(`Bạn đã thay đổi giao diện thành ${newTheme}!`);
     } else {
-      toast.success(`Đã thay đổi giao diện thành ${newTheme}!`);
+      toast.success(`Bạn đã thay đổi giao diện thành ${newTheme}!`);
     }
   };
 

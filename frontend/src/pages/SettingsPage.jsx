@@ -23,12 +23,12 @@ const SettingsPage = () => {
 
   const handleApplyTheme = () => {
     setTheme(selectedTheme);
-    toast.success("Đã áp dụng giao diện mới!", {
+    toast.success("Cập nhật giao diện thành công!", {
       duration: 3000,
       position: "top-center",
       style: {
-        background: "var(--color-primary)",
-        color: "var(--color-primary-content)",
+        background: "#ffffff",
+        color: "#000000",
       },
     });
   };
