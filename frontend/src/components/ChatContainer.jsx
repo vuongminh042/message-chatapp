@@ -421,7 +421,7 @@ const ChatContainer = () => {
                           <img
                             src={message.image}
                             alt="Attachment"
-                            className="max-w-[120px] sm:max-w-[200px] rounded-md mb-1 sm:mb-2 cursor-pointer"
+                            className="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] rounded-md mb-1 sm:mb-2 cursor-pointer object-cover"
                             onClick={() => openImageModal(message.image)}
                           />
                         )}
@@ -550,7 +550,7 @@ const ChatContainer = () => {
                           <img
                             src={message.image}
                             alt="Attachment"
-                            className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer"
+                            className="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] rounded-md mb-2 cursor-pointer object-cover"
                             onClick={() => openImageModal(message.image)}
                           />
                         )}
