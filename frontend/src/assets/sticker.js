@@ -1,5 +1,4 @@
 export const stickers = [
-    // Happy
     { id: 1, src: "./happy/happy.webp" },
     { id: 2, src: "./happy/happy-1.webp" },
     { id: 3, src: "./happy/happy-2.webp" },
@@ -11,7 +10,7 @@ export const stickers = [
     { id: 9, src: "./happy/happy-8.webp" },
     { id: 10, src: "./happy/happy-9.webp" },
     { id: 11, src: "./happy/happy-10.webp" },
-    // Sad
+
     { id: 1, src: "./Sad/sad.webp" },
     { id: 2, src: "./Sad/sad-1.webp" },
     { id: 3, src: "./Sad/sad-2.webp" },
@@ -23,7 +22,7 @@ export const stickers = [
     { id: 9, src: "./Sad/sad-8.webp" },
     { id: 10, src: "./Sad/sad-9.webp" },
     { id: 11, src: "./Sad/sad-10.webp" },
-    // Surprised
+
     { id: 1, src: "./Surprised/Surprised.webp" },
     { id: 2, src: "./Surprised/Surprised-1.webp" },
     { id: 3, src: "./Surprised/Surprised-2.webp" },
@@ -35,7 +34,7 @@ export const stickers = [
     { id: 9, src: "./Surprised/Surprised-8.webp" },
     { id: 10, src: "./Surprised/Surprised-9.webp" },
     { id: 11, src: "./Surprised/Surprised-10.webp" },
-    // Angry
+
     { id: 1, src: "./Angry/Angry.webp" },
     { id: 2, src: "./Angry/Angry-1.webp" },
     { id: 3, src: "./Angry/Angry-2.webp" },
@@ -47,7 +46,7 @@ export const stickers = [
     { id: 9, src: "./Angry/Angry-8.webp" },
     { id: 10, src: "./Angry/Angry-9.webp" },
     { id: 11, src: "./Angry/Angry-10.webp" },
-    // Tired
+
     { id: 1, src: "./Tired/Tired.webp" },
     { id: 2, src: "./Tired/Tired-1.webp" },
     { id: 3, src: "./Tired/Tired-2.webp" },
@@ -59,7 +58,7 @@ export const stickers = [
     { id: 9, src: "./Tired/Tired-8.webp" },
     { id: 10, src: "./Tired/Tired-9.webp" },
     { id: 11, src: "./Tired/Tired-10.webp" },
-    // Loving
+
     { id: 1, src: "./Loving/Loving-.webp" },
     { id: 2, src: "./Loving/Loving-1.webp" },
     { id: 3, src: "./Loving/Loving-2.webp" },

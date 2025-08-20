@@ -275,3 +275,49 @@ export const pinUnpinMessage = async (req, res) => {
     res.status(500).json({ error: "Đã xảy ra lỗi!!" });
   }
 };
+
+export const reactToMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { emoji } = req.body;
+    const userId = req.user._id;
+
+    if (!emoji) return res.status(400).json({ error: "Thiếu emoji" });
+
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ error: "Không tìm thấy tin nhắn" });
+
+    const isParticipant =
+      message.senderId.toString() === userId.toString() ||
+      message.receiverId.toString() === userId.toString();
+    if (!isParticipant) return res.status(403).json({ error: "Không có quyền phản ứng tin nhắn này" });
+
+    const existingIndex = message.reactions.findIndex(
+      (r) => r.userId.toString() === userId.toString()
+    );
+
+    if (existingIndex >= 0) {
+      if (message.reactions[existingIndex].emoji === emoji) {
+        message.reactions.splice(existingIndex, 1); 
+      } else {
+        message.reactions[existingIndex].emoji = emoji; 
+      }
+    } else {
+      message.reactions.push({ userId, emoji });
+    }
+
+    await message.save();
+
+    const payload = { _id: message._id, reactions: message.reactions };
+
+    const senderSocketId = getReceiverSocketId(message.senderId.toString());
+    const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
+    if (senderSocketId) io.to(senderSocketId).emit("messageReaction", payload);
+    if (receiverSocketId) io.to(receiverSocketId).emit("messageReaction", payload);
+
+    res.status(200).json(payload);
+  } catch (error) {
+    console.error("Error in reactToMessage:", error);
+    res.status(500).json({ error: "Đã xảy ra lỗi!!" });
+  }
+};

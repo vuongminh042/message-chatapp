@@ -130,6 +130,21 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  reactToMessage: async (messageId, emoji) => {
+    const { messages } = get();
+    try {
+      const res = await axiosInstance.put(`/messages/${messageId}/react`, { emoji });
+      const { _id, reactions } = res.data;
+      set({
+        messages: messages.map((m) => (m._id === _id ? { ...m, reactions } : m)),
+      });
+
+      const socket = useAuthStore.getState().socket;
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Không thể thả cảm xúc");
+    }
+  },
+
   subscribeToMessages: () => {
     const { selectedUser } = get();
     if (!selectedUser) return;
@@ -203,6 +218,13 @@ export const useChatStore = create((set, get) => ({
       });
     });
 
+    socket.on("messageReaction", ({ _id, reactions }) => {
+      const { messages } = get();
+      set({
+        messages: messages.map((m) => (m._id === _id ? { ...m, reactions } : m)),
+      });
+    });
+
     socket.on("messageDeleted", ({ messageId }) => {
       const { messages } = get();
       set({
@@ -233,6 +255,7 @@ export const useChatStore = create((set, get) => ({
     socket.off("typing");
     socket.off("stopTyping");
     socket.off("themeChanged");
+    socket.off("messageReaction");
   },
 
   setSelectedUser: (user) => {

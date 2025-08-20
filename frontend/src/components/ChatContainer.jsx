@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
-import { Reply, Palette } from "lucide-react";
+import { Reply, Palette, Smile, Plus } from "lucide-react";
 import { FaThumbtack } from "react-icons/fa";
 
 const formatMessageTime = (timestamp) => {
@@ -58,6 +58,7 @@ const ChatContainer = () => {
     markMessageAsDelivered,
     markMessageAsSeen,
     pinUnpinMessage,
+    reactToMessage,
   } = useChatStore();
   const { authUser, socket } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
@@ -72,6 +73,34 @@ const ChatContainer = () => {
   const [isBlockedBy, setIsBlockedBy] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
+  const [reactionTargetId, setReactionTargetId] = useState(null);
+  const EMOJIS = ["👍","❤️","😂","😮","😢","😡"];
+  const [isReactionBelow, setIsReactionBelow] = useState(false);
+  const [emojiPanelFor, setEmojiPanelFor] = useState(null);
+  const emojiPanelRef = useRef(null);
+  const ALL_EMOJIS = [
+    "😀","😁","😂","🤣","😃",
+    "😄","😅","😆","😉","😊",
+    "😋","😎","😍","😘","🥰",
+    "😗","😙","😚","🙂","🤗",
+    "🤩","🤔","🤨","😐","😑",
+    "😶","🙄","😏","😣","😥",
+    "😮","🤐","😯","😪","😫",
+    "🥱","😴","😌","😛","😜",
+    "🤪","😝","🤤","😒","😓",
+    "😔","😕","🙃","🫠","🤑",
+    "🤠","😲","☹️","🙁","😖",
+    "😞","😟","😤","😢","😭",
+    "😦","😧","😨","😩","🤯",
+    "😬","😱","🥵","🥶","😳",
+    "🤬","😡","😠","🤥","🤫",
+    "🤭","🫢","🫣","🤗","🤔",
+    "👍","👎","🙏","👏","👌",
+    "✌️","🤝","💪","🔥","❤️",
+    "🧡","💛","💚","💙","💜",
+    "🖤","🤍","🤎","💯","✨",
+    "💥","🎉"
+  ];
 
   const BASE_URL = import.meta.env.MODE === "development"
     ? "http://localhost:8000"
@@ -276,6 +305,38 @@ const ChatContainer = () => {
   const handleCancelReply = () => {
     setReplyTo(null);
   };
+
+  const openReactionPicker = (messageId) => {
+    try {
+      const el = document.getElementById(messageId);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setIsReactionBelow(rect.top < 300);
+      } else {
+        setIsReactionBelow(false);
+      }
+    } catch (e) {
+      setIsReactionBelow(false);
+    }
+    setReactionTargetId(messageId);
+  };
+  const closeReactionPicker = () => setReactionTargetId(null);
+  const onPickEmoji = async (messageId, emoji) => {
+    await reactToMessage(messageId, emoji);
+    closeReactionPicker();
+    setEmojiPanelFor(null);
+  };
+
+  useEffect(() => {
+    if (!emojiPanelFor) return;
+    const handleClickOutside = (e) => {
+      if (emojiPanelRef.current && !emojiPanelRef.current.contains(e.target)) {
+        setEmojiPanelFor(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [emojiPanelFor]);
 
   const convertUrlsToLinks = (text) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -520,7 +581,7 @@ const ChatContainer = () => {
                       </div>
                     </div>
                   )}
-                  <div id={message._id} className="chat-bubble flex flex-col min-w-0">
+                  <div id={message._id} className="chat-bubble flex flex-col min-w-0 relative">
                     {editingMessage === message._id ? (
                       <div className="flex flex-col gap-2">
                         <input
@@ -582,11 +643,88 @@ const ChatContainer = () => {
                   >
                     <Reply size={14} />
                   </button>
+                  <button
+                    className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity btn btn-ghost btn-xs btn-circle"
+                    onClick={() => openReactionPicker(message._id)}
+                    style={{
+                      [message.senderId === authUser._id ? "left" : "right"]: "-56px"
+                    }}
+                    title="Thả cảm xúc"
+                  >
+                    <Smile size={14} />
+                  </button>
+                  {reactionTargetId === message._id && (
+                    <div
+                      className={`absolute ${isReactionBelow ? 'top-full mt-1' : '-top-8'} left-1/2 bg-base-200 rounded-full px-2 py-1 shadow border flex gap-1 items-center z-10`}
+                      style={{ transform: `translateX(calc(-50% + ${message.senderId === authUser._id ? 0 : 40}px))` }}
+                    >
+                      {EMOJIS.map((e) => (
+                        <button key={e} className="text-lg hover:scale-110 transition" onClick={() => onPickEmoji(message._id, e)}>
+                          {e}
+                        </button>
+                      ))}
+                      {Array.isArray(message.reactions) && message.reactions.some((r) => r.userId === authUser._id) && (
+                        <button
+                          className="btn btn-ghost btn-xs"
+                          title="Bỏ cảm xúc"
+                          onClick={() => {
+                            const my = message.reactions.find((r) => r.userId === authUser._id);
+                            if (my) onPickEmoji(message._id, my.emoji);
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
+                      <button className="btn btn-ghost btn-xs" title="Thêm emoji khác" onClick={() => setEmojiPanelFor(message._id)}>
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  )}
+                  {emojiPanelFor === message._id && (
+                    <div ref={emojiPanelRef} className={`absolute ${isReactionBelow ? 'top-full mt-10' : '-top-48'} left-1/2 bg-base-100 border rounded-xl p-2 shadow z-20 w-64`}
+                      style={{ transform: `translateX(calc(-50% + ${message.senderId === authUser._id ? 0 : 40}px))` }}>
+                      <div className="grid grid-cols-8 gap-1 max-h-32 overflow-y-auto">
+                        {ALL_EMOJIS.map((e, i) => (
+                          <button key={`${e}-${i}`} className="text-lg hover:scale-110 transition" onClick={() => onPickEmoji(message._id, e)}>
+                            {e}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="chat-footer text-xs flex gap-2 items-center mt-1.5">
                   <time className="ml-1 opacity-50">
                     {formatMessageTime(message.createdAt)}
                   </time>
+                  {Array.isArray(message.reactions) && message.reactions.length > 0 && (() => {
+                    const getDisplayName = (id) =>
+                      id === authUser._id
+                        ? "Bạn"
+                        : (selectedUser?.fullName || selectedUser?.username || "Người dùng");
+
+                    const grouped = message.reactions.reduce((acc, r) => {
+                      const name = getDisplayName(r.userId);
+                      if (!acc[r.emoji]) acc[r.emoji] = { count: 0, names: [] };
+                      acc[r.emoji].count += 1;
+                      if (!acc[r.emoji].names.includes(name)) acc[r.emoji].names.push(name);
+                      return acc;
+                    }, {});
+
+                    return (
+                      <div className="flex gap-1">
+                        {Object.entries(grouped).map(([emoji, info]) => (
+                          <span
+                            key={emoji}
+                            className="bg-base-200 rounded-full px-1.5 py-0.5 text-xs"
+                            title={info.names.join(", ")}
+                          >
+                            {emoji} {info.count}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   {message.senderId === authUser._id && (
                     <span className="flex items-center gap-1">
                       {message.status === "sent" && <BsCheck className="text-red-500 font-bold" />}
