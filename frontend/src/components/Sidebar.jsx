@@ -6,7 +6,7 @@ import { Search, Users, X } from "lucide-react";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, unreadMessages } = useChatStore();
-  const { onlineUsers } = useAuthStore();
+  const { onlineUsers, authUser, blockedByUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -105,11 +105,11 @@ const Sidebar = ({ isOpen, onToggle }) => {
             >
               <div className="relative flex-shrink-0">
                 <img
-                  src={user.profilePic || "/avatar.png"}
+                  src={(blockedByUsers?.includes(user._id)) ? "/avatar.png" : (user.profilePic || "/avatar.png")}
                   alt={user.name}
                   className="size-10 object-cover rounded-full"
                 />
-                {onlineUsers.includes(user._id) && (
+                {(!authUser?.blockedUsers?.includes(user._id)) && !blockedByUsers?.includes(user._id) && onlineUsers.includes(user._id) && (
                   <span
                     className="absolute bottom-0 right-0 size-3 bg-green-500 
                     rounded-full ring-2 ring-zinc-900"
@@ -133,7 +133,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
                   )}
                 </div>
                 <div className="text-sm text-zinc-400">
-                  {onlineUsers.includes(user._id) ? "Đang hoạt động" : ""}
+                  {(!authUser?.blockedUsers?.includes(user._id)) && !blockedByUsers?.includes(user._id) && onlineUsers.includes(user._id) ? "Đang hoạt động" : ""}
                 </div>
               </div>
             </button>

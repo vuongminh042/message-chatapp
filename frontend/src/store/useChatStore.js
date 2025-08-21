@@ -65,8 +65,14 @@ export const useChatStore = create((set, get) => ({
     const { messages } = get();
     try {
       const res = await axiosInstance.put(`/messages/${messageId}`, { text: newText });
-      const updatedMessage = { ...messages.find(m => m._id === messageId), text: res.data.text };
-    
+      const existing = messages.find(m => m._id === messageId) || {};
+      const serverMessage = res?.data?.data;
+      const updatedMessage = {
+        ...existing,
+        ...(serverMessage || {}),
+        text: serverMessage?.text ?? newText,
+      };
+
       set({
         messages: messages.map((message) =>
           message._id === messageId ? updatedMessage : message

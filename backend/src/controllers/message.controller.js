@@ -182,6 +182,11 @@ export const updateMessage = async (req, res) => {
     message.text = text;
     await message.save();
 
+    const senderSocketId = getReceiverSocketId(message.senderId.toString());
+    const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
+    if (senderSocketId) io.to(senderSocketId).emit("messageUpdated", message);
+    if (receiverSocketId) io.to(receiverSocketId).emit("messageUpdated", message);
+
     res.status(200).json({ message: "Cập nhật tin nhắn thành công!", data: message });
   } catch (error) {
     console.error("Error in updateMessage: ", error.message);

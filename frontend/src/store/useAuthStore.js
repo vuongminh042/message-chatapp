@@ -15,6 +15,7 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
+  blockedByUsers: [],
 
   checkAuth: async () => {
     try {
@@ -62,7 +63,7 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
-      set({ authUser: null });
+      set({ authUser: null, blockedByUsers: [], onlineUsers: [] });
       toast.success("Đăng xuất thành công");
       get().disconnectSocket();
     } catch (error) {
@@ -99,6 +100,42 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
+    });
+
+    // Cập nhật danh sách blockedUsers ngay khi block/unblock thành công để UI ẩn trạng thái online/offline lập tức
+    socket.on("blockSuccess", ({ userId }) => {
+      set((state) => ({
+        authUser: {
+          ...state.authUser,
+          blockedUsers: Array.from(
+            new Set([...(state.authUser?.blockedUsers || []), userId])
+          ),
+        },
+      }));
+    });
+
+    socket.on("unblockSuccess", ({ userId }) => {
+      set((state) => ({
+        authUser: {
+          ...state.authUser,
+          blockedUsers: (state.authUser?.blockedUsers || []).filter(
+            (id) => id !== userId
+          ),
+        },
+      }));
+    });
+
+    // Bị người khác chặn/bỏ chặn
+    socket.on("userBlocked", ({ blockerId }) => {
+      set((state) => ({
+        blockedByUsers: Array.from(new Set([...(state.blockedByUsers || []), blockerId])),
+      }));
+    });
+
+    socket.on("userUnblocked", ({ unblockerId }) => {
+      set((state) => ({
+        blockedByUsers: (state.blockedByUsers || []).filter((id) => id !== unblockerId),
+      }));
     });
   },
   disconnectSocket: () => {

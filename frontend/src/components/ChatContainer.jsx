@@ -448,12 +448,12 @@ const ChatContainer = () => {
 
       <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4 min-h-0">
         {isBlocking ? (
-          <div className="text-center text-gray-500">
-            Bạn đã chặn. Vui lòng bỏ chặn để tiếp tục cuộc trò chuyện.
+          <div className="text-center text-red-500 font-bold">
+            Bạn đã chặn! Vui lòng bỏ chặn để tiếp tục cuộc trò chuyện.
           </div>
         ) : isBlockedBy ? (
-          <div className="text-center text-gray-500">
-            Bạn đã bị chặn, không thể tiếp tục cuộc trò chuyện.
+          <div className="text-center text-red-500 font-bold">
+            Người này hiện không có trên Blink Chat!
           </div>
         ) : (
           <>
@@ -525,8 +525,8 @@ const ChatContainer = () => {
                     <img
                       src={
                         message.senderId === authUser._id
-                          ? authUser.profilePic || "/avatar.png"
-                          : selectedUser.profilePic || "/avatar.png"
+                          ? (authUser.profilePic || "/avatar.png")
+                          : (isBlockedBy ? "/avatar.png" : (selectedUser.profilePic || "/avatar.png"))
                       }
                       alt="profile pic"
                     />
@@ -755,7 +755,7 @@ const ChatContainer = () => {
             <div className="chat-image avatar">
               <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full border">
                 <img
-                  src={selectedUser.profilePic || "/avatar.png"}
+                  src={isBlockedBy ? "/avatar.png" : (selectedUser.profilePic || "/avatar.png")}
                   alt="profile pic"
                 />
               </div>

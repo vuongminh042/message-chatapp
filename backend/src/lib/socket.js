@@ -54,7 +54,10 @@ io.on("connection", (socket) => {
   socket.on("blockUser", async ({ userIdToBlock, currentUserId }) => {
     try {
       await User.findByIdAndUpdate(currentUserId, { $addToSet: { blockedUsers: userIdToBlock } });
-      socket.broadcast.to(userIdToBlock).emit("userBlocked", { blockerId: currentUserId });
+      const receiverSocketId = getReceiverSocketId(userIdToBlock);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("userBlocked", { blockerId: currentUserId });
+      }
       socket.emit("blockSuccess", { userId: userIdToBlock });
     } catch (error) {
       console.error("Error in blockUser socket:", error);
@@ -65,7 +68,10 @@ io.on("connection", (socket) => {
   socket.on("unblockUser", async ({ userIdToUnblock, currentUserId }) => {
     try {
       await User.findByIdAndUpdate(currentUserId, { $pull: { blockedUsers: userIdToUnblock } });
-      socket.broadcast.to(userIdToUnblock).emit("userUnblocked", { unblockerId: currentUserId });
+      const receiverSocketId = getReceiverSocketId(userIdToUnblock);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("userUnblocked", { unblockerId: currentUserId });
+      }
       socket.emit("unblockSuccess", { userId: userIdToUnblock });
     } catch (error) {
       console.error("Error in unblockUser socket:", error);

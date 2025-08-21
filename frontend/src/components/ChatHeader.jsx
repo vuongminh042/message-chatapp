@@ -6,7 +6,7 @@ import { useState, useMemo } from "react";
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
-  const { onlineUsers } = useAuthStore();
+  const { onlineUsers, authUser, blockedByUsers } = useAuthStore();
   const [showPinnedModal, setShowPinnedModal] = useState(false);
   const messages = useChatStore((state) => state.messages);
   const pinnedMessages = useMemo(() => messages.filter(m => m.isPinned), [messages]);
@@ -18,11 +18,15 @@ const ChatHeader = () => {
           <div className="avatar">
             <div className="size-10 rounded-full relative">
               <img 
-                src={selectedUser.profilePic || "/avatar.png"} 
+                src={
+                  (blockedByUsers?.includes(selectedUser._id))
+                    ? "/avatar.png"
+                    : (selectedUser.profilePic || "/avatar.png")
+                } 
                 alt={selectedUser.fullName} 
                 className="w-full h-full object-cover"
               />
-              {onlineUsers.includes(selectedUser._id) && (
+              {(!authUser?.blockedUsers?.includes(selectedUser._id)) && !blockedByUsers?.includes(selectedUser._id) && onlineUsers.includes(selectedUser._id) && (
                 <span className="absolute bottom-0 right-0 size-2.5 bg-green-500 rounded-full ring-1 ring-base-200" />
               )}
             </div>
@@ -31,7 +35,7 @@ const ChatHeader = () => {
           <div className="min-w-0">
             <h3 className="font-medium text-base truncate pr-2">{selectedUser.fullName}</h3>
             <p className="text-sm text-base-content/70">
-              {onlineUsers.includes(selectedUser._id) ? "Đang hoạt động" : ""}
+              {(!authUser?.blockedUsers?.includes(selectedUser._id)) && !blockedByUsers?.includes(selectedUser._id) && onlineUsers.includes(selectedUser._id) ? "Đang hoạt động" : ""}
             </p>
           </div>
         </div>
