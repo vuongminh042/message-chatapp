@@ -10,8 +10,9 @@ import { toast } from "react-hot-toast";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
-import { Reply, Palette, Smile, Plus } from "lucide-react";
+import { Reply, Palette, Smile, Plus, Search } from "lucide-react";
 import { FaThumbtack } from "react-icons/fa";
+import QuickSearch from "./QuickSearch";
 
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
@@ -78,6 +79,8 @@ const ChatContainer = () => {
   const [isReactionBelow, setIsReactionBelow] = useState(false);
   const [emojiPanelFor, setEmojiPanelFor] = useState(null);
   const emojiPanelRef = useRef(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
   const ALL_EMOJIS = [
     "😀","😁","😂","🤣","😃",
     "😄","😅","😆","😉","😊",
@@ -338,6 +341,23 @@ const ChatContainer = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [emojiPanelFor]);
 
+  // Handle Ctrl+F for quick search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        if (selectedUser) {
+          setIsQuickSearchOpen(true);
+        } else {
+          setIsSearchOpen(true);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedUser]);
+
   const convertUrlsToLinks = (text) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.split(urlRegex).map((part, i) => {
@@ -390,6 +410,16 @@ const ChatContainer = () => {
       <div className="flex justify-between items-center p-2 sm:p-4 border-b flex-shrink-0">
         <ChatHeader />
         <div className="flex items-center gap-2">
+          {selectedUser && (
+            <button
+              className="btn btn-xs sm:btn-sm btn-outline btn-secondary"
+              onClick={() => setIsQuickSearchOpen(true)}
+              title="Tìm kiếm nhanh (Ctrl+F)"
+            >
+              <Search className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+          )}
+          
           <div className="relative">
             <button
               className="theme-button btn btn-xs sm:btn-sm btn-outline btn-primary"
@@ -787,6 +817,13 @@ const ChatContainer = () => {
           onClose={closeImageModal}
         />
       )}
+
+
+      <QuickSearch
+        messages={messages}
+        isOpen={isQuickSearchOpen}
+        onClose={() => setIsQuickSearchOpen(false)}
+      />
 
       <style>
         {`

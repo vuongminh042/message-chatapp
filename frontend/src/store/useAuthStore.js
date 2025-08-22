@@ -102,7 +102,6 @@ export const useAuthStore = create((set, get) => ({
       set({ onlineUsers: userIds });
     });
 
-    // Cập nhật danh sách blockedUsers ngay khi block/unblock thành công để UI ẩn trạng thái online/offline lập tức
     socket.on("blockSuccess", ({ userId }) => {
       set((state) => ({
         authUser: {
@@ -125,7 +124,6 @@ export const useAuthStore = create((set, get) => ({
       }));
     });
 
-    // Bị người khác chặn/bỏ chặn
     socket.on("userBlocked", ({ blockerId }) => {
       set((state) => ({
         blockedByUsers: Array.from(new Set([...(state.blockedByUsers || []), blockerId])),

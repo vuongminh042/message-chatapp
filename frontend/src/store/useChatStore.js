@@ -276,4 +276,15 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  searchMessages: async (query) => {
+    if (!query.trim()) return [];
+    try {
+      const res = await axiosInstance.get(`/messages/search?q=${encodeURIComponent(query)}`);
+      return res.data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Lỗi khi tìm kiếm tin nhắn");
+      return [];
+    }
+  },
+
 }));

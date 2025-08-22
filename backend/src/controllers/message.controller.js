@@ -125,8 +125,9 @@ export const searchMessages = async (req, res) => {
       text: { $regex: q, $options: "i" },
       $or: [{ senderId: userId }, { receiverId: userId }],
     })
-      .populate("senderId", "username") 
-      .populate("receiverId", "username"); 
+      .populate("senderId", "fullName username") 
+      .populate("receiverId", "fullName username")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(messages);
   } catch (error) {
