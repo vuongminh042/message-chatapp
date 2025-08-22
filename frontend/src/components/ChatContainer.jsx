@@ -14,6 +14,8 @@ import { Reply, Palette, Smile, Plus, Search } from "lucide-react";
 import { FaThumbtack } from "react-icons/fa";
 import QuickSearch from "./QuickSearch";
 
+import { motion, AnimatePresence } from "framer-motion";
+
 const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -75,6 +77,7 @@ const ChatContainer = () => {
   const [replyTo, setReplyTo] = useState(null);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [reactionTargetId, setReactionTargetId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const EMOJIS = ["👍","❤️","😂","😮","😢","😡"];
   const [isReactionBelow, setIsReactionBelow] = useState(false);
   const [emojiPanelFor, setEmojiPanelFor] = useState(null);
@@ -341,7 +344,6 @@ const ChatContainer = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [emojiPanelFor]);
 
-  // Handle Ctrl+F for quick search
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
@@ -493,54 +495,52 @@ const ChatContainer = () => {
                   <FaThumbtack className="text-blue-500 text-base sm:text-lg" /> Tin nhắn đã ghim
                 </div>
                 <div className="flex flex-col gap-1 sm:gap-2">
-                  {pinnedMessages.map((message) => (
-                    <div
-                      key={message._id}
-                      className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"} group relative`}
+                {pinnedMessages.map((message) => (
+                  <div
+                    key={message._id}
+                    className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"} group relative`}
+                  >
+                  <div className="chat-bubble flex flex-col min-w-0 bg-blue-100 border border-blue-200 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-base relative">
+                    {message.image && (
+                      <img
+                        src={message.image}
+                        alt="Attachment"
+                        className="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] rounded-md mb-1 sm:mb-2 cursor-pointer object-cover"
+                        onClick={() => openImageModal(message.image)}
+                      />
+                    )}
+                    {message.video && (
+                      <div className="video-wrapper">
+                        <video
+                          src={message.video}
+                          controls
+                          preload="none"
+                          className="w-[80px] sm:w-[320px] rounded-md mb-1 sm:mb-2"
+                          poster="/video-thumbnail.png"
+                        />
+                      </div>
+                    )}
+                    {message.text && (
+                      <p className="whitespace-pre-wrap break-words text-black text-xs sm:text-base">
+                        {convertUrlsToLinks(message.text)}
+                      </p>
+                    )}
+                    <button
+                      className={`absolute top-1 right-1 sm:right-2 text-xs sm:text-sm ${message.isPinned ? "text-blue-500" : "text-gray-400"}`}
+                      title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
+                      onClick={() => pinUnpinMessage(message._id)}
                     >
-                      <div className="chat-header mb-0.5 sm:mb-1 flex items-center justify-end">
-                        <button
-                          className={`ml-1 sm:ml-2 text-xs sm:text-sm ${message.isPinned ? "text-blue-500" : "text-gray-400"}`}
-                          title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
-                          onClick={() => pinUnpinMessage(message._id)}
-                        >
-                          <FaThumbtack style={{ transform: message.isPinned ? "rotate(-45deg)" : "none" }} className="text-base sm:text-lg" />
-                        </button>
-                      </div>
-                      <div className="chat-bubble flex flex-col min-w-0 bg-blue-100 border border-blue-200 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-base">
-                        {message.image && (
-                          <img
-                            src={message.image}
-                            alt="Attachment"
-                            className="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] rounded-md mb-1 sm:mb-2 cursor-pointer object-cover"
-                            onClick={() => openImageModal(message.image)}
-                          />
-                        )}
-                        {message.video && (
-                          <div className="video-wrapper">
-                            <video
-                              src={message.video}
-                              controls
-                              preload="none"
-                              className="w-[80px] sm:w-[320px] rounded-md mb-1 sm:mb-2"
-                              poster="/video-thumbnail.png"
-                            />
-                          </div>
-                        )}
-                        {message.text && (
-                          <p className="whitespace-pre-wrap break-words text-black text-xs sm:text-base">
-                            {convertUrlsToLinks(message.text)}
-                          </p>
-                        )}
-                      </div>
-                      <div className="chat-footer text-[10px] sm:text-xs flex gap-1 sm:gap-2 items-center mt-0.5 sm:mt-1.5">
-                        <time className="ml-1 opacity-50">
-                          {formatMessageTime(message.createdAt)}
-                        </time>
-                      </div>
-                    </div>
-                  ))}
+                      <FaThumbtack style={{ transform: message.isPinned ? "rotate(-45deg)" : "none" }} className="text-base sm:text-lg" />
+                    </button>
+                  </div>
+                  <div className="chat-footer text-[10px] sm:text-xs flex gap-1 sm:gap-2 items-center mt-0.5 sm:mt-1.5">
+                    <time className="ml-1 opacity-50">
+                      {formatMessageTime(message.createdAt)}
+                    </time>
+                  </div>
                 </div>
+              ))}
+              </div>
               </div>
             )}
 
@@ -563,29 +563,97 @@ const ChatContainer = () => {
                   </div>
                 </div>
                 <div className="chat-header mb-1 flex items-center justify-end">
-                  {message.senderId === authUser._id && (
-                    <div className="flex gap-2">
-                      <button
-                        className="text-red-500 text-xs"
-                        onClick={() => handleDeleteMessage(message._id)}
+                  <div className="relative">
+                    <button
+                      className="text-gray-600 text-sm p-1 rounded-full hover:bg-gray-100"
+                      onClick={() => 
+                      setOpenMenuId(openMenuId === message._id ? null : message._id)
+                      }>
+                      <motion.div
+                        animate={{ rotate: openMenuId === message._id ? 360 : 0 }}
+                        transition={{ duration: 0.4 }}
                       >
-                        <MdDelete />
-                      </button>
+                        <Plus size={14} />
+                      </motion.div>
+                    </button>
+
+                    <AnimatePresence>
+                      {openMenuId === message._id && (
+                        <motion.div
+                          initial={{ width: 0, opacity: 0 }}
+                          animate={{ width: "auto", opacity: 1 }}
+                          exit={{ width: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="absolute right-8 top-0 flex gap-2 bg-white shadow-md p-2 rounded-xl z-50 overflow-hidden"
+                        >
+                      {message.senderId === authUser._id && (
+                        <>
+                          <button
+                            className="text-red-500 text-sm hover:scale-110 transition"
+                            onClick={() => handleDeleteMessage(message._id)}
+                          >
+                            <MdDelete size={16} />
+                          </button>
+                          <button
+                            className="text-blue-500 text-sm hover:scale-110 transition"
+                            onClick={() => handleEditMessage(message)}
+                          >
+                            <MdEdit size={16} />
+                          </button>
+                        </>
+                      )}
                       <button
-                        className="text-blue-500 text-xs"
-                        onClick={() => handleEditMessage(message)}
+                        className={`text-sm hover:scale-110 transition ${
+                        message.isPinned ? "text-yellow-500" : "text-gray-400"
+                        }`}
+                        title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
+                        onClick={() => pinUnpinMessage(message._id)}
                       >
-                        <MdEdit />
+                        <FaThumbtack
+                          size={16}
+                          style={{
+                        transform: message.isPinned ? "rotate(-45deg)" : "none",
+                      }}
+                      />
                       </button>
-                    </div>
-                  )}
-                  <button
-                    className={`ml-2 text-xs ${message.isPinned ? "text-yellow-500" : "text-gray-400"}`}
-                    title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
-                    onClick={() => pinUnpinMessage(message._id)}
-                  >
-                    <FaThumbtack style={{ transform: message.isPinned ? "rotate(-45deg)" : "none" }} />
-                  </button>
+                      </motion.div>
+                    )}
+                    </AnimatePresence>
+                    {openMenuId === message._id && (
+                      <div className="absolute right-8 top-0 flex gap-2 bg-white shadow-md p-2 rounded-xl z-50">
+                        {message.senderId === authUser._id && (
+                          <>
+                            <button
+                              className="text-red-500 text-sm hover:scale-110 transition"
+                              onClick={() => handleDeleteMessage(message._id)}
+                            >
+                              <MdDelete size={16} />
+                            </button>
+                            <button
+                              className="text-blue-500 text-sm hover:scale-110 transition"
+                              onClick={() => handleEditMessage(message)}
+                            >
+                              <MdEdit size={16} />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          className={`text-sm hover:scale-110 transition ${
+                            message.isPinned ? "text-yellow-500" : "text-gray-400"
+                          }`}
+                          title={message.isPinned ? "Bỏ ghim" : "Ghim tin nhắn"}
+                          onClick={() => pinUnpinMessage(message._id)}
+                        >
+                          <FaThumbtack
+                            size={16}
+                            style={{
+                              transform: message.isPinned ? "rotate(-45deg)" : "none",
+                            }}
+                          />
+                        </button>
+                      </div>
+                    )} 
+                  </div>
                 </div>
                 <div className="relative">
                   {message.replyTo && (
